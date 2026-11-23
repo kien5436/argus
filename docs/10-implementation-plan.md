@@ -18,7 +18,7 @@ This is the build order for Argus v1. It is a tracker as well as a plan. Each ta
 - **G2 Pipeline.** The CI pipeline is green on the commit: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `cargo deny check`, `cargo audit`. Apple tasks also run `xcodebuild test` on the macOS runner.
 - **G3 Coverage.** Line coverage of every module the task touched is at least 90%, measured with `cargo llvm-cov`. Security-critical modules (verification, crypto wrappers, session, store writes) are at least 95%.
 - **G4 Secrets.** The secret-scan check in CI passes: no secret value, master password or private key appears in test output, logs or fixtures.
-- **G5 Spec.** Behaviour matches the spec sections named in the task. `spec/` is identical to `docs/` (T0.3 check).
+- **G5 Spec.** Behaviour matches the spec sections named in the task.
 - **G6 Tracker and commit.** Status is updated, and the task has exactly one commit.
 
 ## 3. Tracker
@@ -29,8 +29,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | --- | --- | --- | --- | --- |
 | T0.1 | Repository skeleton | none | GREEN | |
 | T0.2 | CI pipeline | T0.1 | GREEN | |
-| T0.3 | Spec sync check | T0.2 | TODO | |
-| T1.1 | Canonical JSON | T0.3 | TODO | |
+| T0.3 | Spec sync check | T0.2 | DROPPED (owner decision 2026-11-23) | |
+| T1.1 | Canonical JSON | T0.2 | TODO | |
 | T1.2 | Encodings and ids | T1.1 | TODO | |
 | T1.3 | Domain-separated signatures | T1.2 | TODO | |
 | T1.4 | Recipients, fingerprints, anchors | T1.3 | TODO | |
@@ -108,7 +108,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T10.6 | Build from source instructions | T10.5 | TODO | |
 | T10.7 | External security review | T10.6 | BLOCKED (external) | |
 
-Phase gates: Phase 1 starts after T0.3 is green. Each later phase starts after the previous phase's last task is green.
+Phase gates: Phase 1 starts after T0.2 is green (T0.3 dropped). Each later phase starts after the previous phase's last task is green.
 
 ## 4. Tasks
 
@@ -136,14 +136,8 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Green when:** G2 passes on the commit, and T0.2-01 to T0.2-04 are demonstrated and recorded in the commit message.
 - **Commit:** `build: T0.2 CI pipeline`
 
-#### T0.3 Spec sync check
-- **Feature:** CI fails if `spec/` differs from `docs/`.
-- **Tests:**
-  - [ ] T0.3-01 Identical folders pass.
-  - [ ] T0.3-02 Changing one byte in `spec/` fails.
-  - [ ] T0.3-03 A file added only to `docs/` fails.
-- **Green when:** G2, G5.
-- **Commit:** `build: T0.3 spec sync check`
+#### T0.3 Spec sync check — DROPPED (owner decision 2026-11-23)
+- The `spec/` mirror and its CI check were judged unnecessary. `docs/` is the single source of truth; no `spec/` copy is kept.
 
 ### Phase 1: core primitives
 

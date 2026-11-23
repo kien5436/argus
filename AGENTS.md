@@ -69,11 +69,10 @@ core/
   vault-ffi/      UniFFI interface and generated bindings
   cli/            the argus binary and the agent
 apple/            Swift package wrapping the XCFramework; SwiftUI apps
-spec/             copy of this docs/ folder, kept in sync with the code
 ```
 
 ## Working with these docs
 
-- Keep `spec/` identical to this folder. A behaviour change changes the document in the same commit, and the commit message cites the file and section.
+- A behaviour change changes the document in the same commit, and the commit message cites the file and section.
 - Add the tests from `08-testing.md` for every feature you finish.
 - If you find a gap, report it to the owner. Do not add rules to the docs yourself.
