@@ -30,7 +30,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T0.1 | Repository skeleton | none | GREEN | |
 | T0.2 | CI pipeline | T0.1 | GREEN | |
 | T0.3 | Spec sync check | T0.2 | DROPPED (owner decision 2026-11-23) | |
-| T1.1 | Canonical JSON | T0.2 | TODO | |
+| T1.1 | Canonical JSON | T0.2 | GREEN | |
 | T1.2 | Encodings and ids | T1.1 | TODO | |
 | T1.3 | Domain-separated signatures | T1.2 | TODO | |
 | T1.4 | Recipients, fingerprints, anchors | T1.3 | TODO | |
@@ -145,16 +145,16 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** serialise JSON to RFC 8785 canonical form. Used before every hash and signature.
 - **Spec:** 03 section 3.1.
 - **Tests:**
-  - [ ] T1.1-01 Object keys sorted by UTF-16 code units (including keys with non-BMP characters).
-  - [ ] T1.1-02 Nested objects and arrays keep array order and sort object keys.
-  - [ ] T1.1-03 Strings escape only the required characters; non-ASCII is written as UTF-8.
-  - [ ] T1.1-04 Control characters use the RFC 8785 escapes (`\b`, `\f`, `\n`, `\r`, `\t`, and `\u00XX` for the rest).
-  - [ ] T1.1-05 Integers serialise without leading zeros or a sign on zero; `-0` is rejected.
-  - [ ] T1.1-06 Floats are rejected by Argus data types (Argus JSON has no floats).
-  - [ ] T1.1-07 Duplicate keys in input are rejected.
-  - [ ] T1.1-08 Empty object `{}` and empty array `[]` round-trip.
-  - [ ] T1.1-09 Every vector from the RFC 8785 test set produces the expected output.
-  - [ ] T1.1-10 Output is byte-identical across 1,000 random inputs when serialised twice.
+  - [x] T1.1-01 Object keys sorted by UTF-16 code units (including keys with non-BMP characters).
+  - [x] T1.1-02 Nested objects and arrays keep array order and sort object keys.
+  - [x] T1.1-03 Strings escape only the required characters; non-ASCII is written as UTF-8.
+  - [x] T1.1-04 Control characters use the RFC 8785 escapes (`\b`, `\f`, `\n`, `\r`, `\t`, and `\u00XX` for the rest).
+  - [x] T1.1-05 Integers serialise without leading zeros or a sign on zero; `-0` is rejected.
+  - [x] T1.1-06 Floats are rejected by Argus data types (Argus JSON has no floats).
+  - [x] T1.1-07 Duplicate keys in input are rejected.
+  - [x] T1.1-08 Empty object `{}` and empty array `[]` round-trip.
+  - [x] T1.1-09 Every vector from the RFC 8785 test set produces the expected output.
+  - [x] T1.1-10 Output is byte-identical across 1,000 random inputs when serialised twice.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T1.1 canonical JSON (RFC 8785)`
 
