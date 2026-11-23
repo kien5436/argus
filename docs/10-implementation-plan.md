@@ -32,7 +32,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T0.3 | Spec sync check | T0.2 | DROPPED (owner decision 2026-11-23) | |
 | T1.1 | Canonical JSON | T0.2 | GREEN | |
 | T1.2 | Encodings and ids | T1.1 | GREEN | |
-| T1.3 | Domain-separated signatures | T1.2 | TODO | |
+| T1.3 | Domain-separated signatures | T1.2 | GREEN | |
 | T1.4 | Recipients, fingerprints, anchors | T1.3 | TODO | |
 | T1.5 | Secret types | T1.4 | TODO | |
 | T1.6 | age wrapper and header spike | T1.5 | TODO | |
@@ -175,13 +175,13 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** Ed25519 signing and verification over `prefix || canonical bytes`, where the prefix ends in a newline. Verification uses strict mode.
 - **Spec:** 03 sections 3.1 and 3.4.
 - **Tests:**
-  - [ ] T1.3-01 A signature verifies with its key and prefix.
-  - [ ] T1.3-02 The same signature fails under a different prefix (`devices`, `entry`, `join`).
-  - [ ] T1.3-03 A one-byte change to the payload fails.
-  - [ ] T1.3-04 A signature from another key fails.
-  - [ ] T1.3-05 A non-canonical signature encoding (malleable `S` value) is rejected.
-  - [ ] T1.3-06 Each prefix is exactly its ASCII string followed by `0x0A`.
-  - [ ] T1.3-07 The Ed25519 test vectors from RFC 8032 verify.
+  - [x] T1.3-01 A signature verifies with its key and prefix.
+  - [x] T1.3-02 The same signature fails under a different prefix (`devices`, `entry`, `join`).
+  - [x] T1.3-03 A one-byte change to the payload fails.
+  - [x] T1.3-04 A signature from another key fails.
+  - [x] T1.3-05 A non-canonical signature encoding (malleable `S` value) is rejected.
+  - [x] T1.3-06 Each prefix is exactly its ASCII string followed by `0x0A`.
+  - [x] T1.3-07 The Ed25519 test vectors from RFC 8032 verify.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T1.3 domain-separated Ed25519 signatures`
 
