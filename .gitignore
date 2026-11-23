@@ -1,0 +1,38 @@
+# Rust build output
+/target/
+**/*.rs.bk
+# NOTE: Cargo.lock is intentionally committed (workspace ships the argus binary).
+
+# Swift / Xcode (apple/)
+DerivedData/
+*.xcuserdata/
+*.xcworkspace/xcuserdata/
+*.moved-aside
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+build/
+Carthage/Build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Argus runtime data (MUST never be committed: device identity and secrets)
+device.key
+trust.json
+join_state.json
+argus.log
+argus.log.*
+.argus/
+
+# Local tooling and env
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+.env
+.envrc.local

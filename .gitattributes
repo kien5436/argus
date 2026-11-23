@@ -1,0 +1,22 @@
+# Normalize line endings; check out native endings on Windows, commit LF.
+* text=auto
+
+# Source files: always LF in the repo.
+*.rs text eol=lf
+*.swift text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.udl text eol=lf
+
+# Binary assets must not be mangled.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.xcassets/** binary
+*.age binary
+
+# Swift package resolved file: keep exact bytes.
+Package.resolved text eol=lf
