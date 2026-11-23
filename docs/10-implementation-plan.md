@@ -34,7 +34,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.2 | Encodings and ids | T1.1 | GREEN | |
 | T1.3 | Domain-separated signatures | T1.2 | GREEN | |
 | T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | |
-| T1.5 | Secret types | T1.4 | TODO | |
+| T1.5 | Secret types | T1.4 | GREEN | |
 | T1.6 | age wrapper and header spike | T1.5 | TODO | |
 | T1.7 | Entry plaintext format | T1.6 | TODO | |
 | T1.8 | Entry signature | T1.7 | TODO | |
@@ -208,12 +208,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** wrapper types for master password, private keys, decrypted passwords, OTP secrets and codes. They zeroise on drop and never print their contents.
 - **Spec:** 01 Core API (secret types); 02 invariants.
 - **Tests:**
-  - [ ] T1.5-01 `Debug` and `Display` of each secret type print a fixed redaction string.
-  - [ ] T1.5-02 Formatting an `Entry` containing a password does not reveal the password.
-  - [ ] T1.5-03 Dropping a secret zeroises its buffer (test with a test-only hook that reads the buffer after drop).
-  - [ ] T1.5-04 `Clone` is not implemented for secret types (compile-fail test).
-  - [ ] T1.5-05 Equality on secrets compares in constant time (test with a timing-independent check or use `subtle`).
-  - [ ] T1.5-06 Secrets cannot be serialised with `serde` (compile-fail test).
+  - [x] T1.5-01 `Debug` and `Display` of each secret type print a fixed redaction string.
+  - [x] T1.5-02 Formatting an `Entry` containing a password does not reveal the password.
+  - [x] T1.5-03 Dropping a secret zeroises its buffer (test with a test-only hook that reads the buffer after drop).
+  - [x] T1.5-04 `Clone` is not implemented for secret types (compile-fail test).
+  - [x] T1.5-05 Equality on secrets compares in constant time (test with a timing-independent check or use `subtle`).
+  - [x] T1.5-06 Secrets cannot be serialised with `serde` (compile-fail test).
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T1.5 secret types`
 
