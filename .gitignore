@@ -21,6 +21,8 @@ Carthage/Build/
 .LSOverride
 
 # Argus runtime data (MUST never be committed: device identity and secrets)
+*.key
+*.age
 device.key
 trust.json
 join_state.json

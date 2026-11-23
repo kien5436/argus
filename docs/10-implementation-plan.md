@@ -6,7 +6,7 @@ This is the build order for Argus v1. It is a tracker as well as a plan. Each ta
 
 1. **Strict order.** Work through the tasks in the order listed. Do not start a task until every earlier task is green. Do not skip a task that is blocked; stop and report it.
 2. **Green means done.** A task is green only when every check in its "Green when" list passes and its test cases all pass. A failing or skipped test means the task is not green.
-3. **One commit per green task.** Commit when a task turns green, with the message `T<id>: <title>`, for example `T1.1: canonical JSON (RFC 8785)`. The commit includes the tracker update for that task. Do not combine tasks in one commit. These are commits in the source repository. The store commit rules in `03-store-format.md` (`init` and `update`) apply only to the data store, never to the source repository.
+3. **One commit per green task.** Commit when a task turns green, with the message `<type>: T<id> <title>` following commit-style (`<type>` in feat|fix|chore|refactor|test|docs|build|ops, imperative, lowercase-first, no trailing period), for example `feat: T1.1 canonical JSON (RFC 8785)`. The commit includes the tracker update for that task. Do not combine tasks in one commit. These are commits in the source repository. The store commit rules in `03-store-format.md` (`init` and `update`) apply only to the data store, never to the source repository.
 4. **Tracker updates.** Set the task's status in section 3 in the same commit as its code, and record the commit hash.
 5. **Blocked tasks.** A task that needs an owner decision is marked BLOCKED and says which decision it needs. Do not guess the answer.
 6. **Spec changes.** If implementation shows the spec is wrong or silent, stop, report the gap with its file and section, and wait. Do not edit the spec on your own.
@@ -27,7 +27,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 
 | ID | Task | Depends on | Status | Commit |
 | --- | --- | --- | --- | --- |
-| T0.1 | Repository skeleton | none | TODO | |
+| T0.1 | Repository skeleton | none | GREEN | |
 | T0.2 | CI pipeline | T0.1 | TODO | |
 | T0.3 | Spec sync check | T0.2 | TODO | |
 | T1.1 | Canonical JSON | T0.3 | TODO | |
@@ -120,11 +120,11 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** create the repository layout from `AGENTS.md`: `core/vault-core`, `core/vault-ffi`, `core/cli`, `apple/`, `spec/`, `tests/`. Add `.gitignore` covering `target/`, Xcode user data, `*.key`, and any store checkout.
 - **Spec:** AGENTS.md, repository layout.
 - **Tests:**
-  - [ ] T0.1-01 `cargo build --workspace` succeeds on an empty workspace.
-  - [ ] T0.1-02 `.gitignore` excludes a file named `device.key` placed in the repo root.
-  - [ ] T0.1-03 No secret-like file (`*.key`, `*.age`) is tracked.
+  - [x] T0.1-01 `cargo build --workspace` succeeds on an empty workspace.
+  - [x] T0.1-02 `.gitignore` excludes a file named `device.key` placed in the repo root.
+  - [x] T0.1-03 No secret-like file (`*.key`, `*.age`) is tracked.
 - **Green when:** G2, G6.
-- **Commit:** `T0.1: repository skeleton`
+- **Commit:** `chore: T0.1 repository skeleton`
 
 #### T0.2 CI pipeline
 - **Feature:** CI runs the G2 checks on every push and pull request.
@@ -134,7 +134,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T0.2-03 A failing unit test fails the pipeline.
   - [ ] T0.2-04 `cargo deny` fails on a banned licence (use a fixture).
 - **Green when:** G2 passes on the commit, and T0.2-01 to T0.2-04 are demonstrated and recorded in the commit message.
-- **Commit:** `T0.2: CI pipeline`
+- **Commit:** `build: T0.2 CI pipeline`
 
 #### T0.3 Spec sync check
 - **Feature:** CI fails if `spec/` differs from `docs/`.
@@ -143,7 +143,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T0.3-02 Changing one byte in `spec/` fails.
   - [ ] T0.3-03 A file added only to `docs/` fails.
 - **Green when:** G2, G5.
-- **Commit:** `T0.3: spec sync check`
+- **Commit:** `build: T0.3 spec sync check`
 
 ### Phase 1: core primitives
 
@@ -162,7 +162,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.1-09 Every vector from the RFC 8785 test set produces the expected output.
   - [ ] T1.1-10 Output is byte-identical across 1,000 random inputs when serialised twice.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T1.1: canonical JSON (RFC 8785)`
+- **Commit:** `feat: T1.1 canonical JSON (RFC 8785)`
 
 #### T1.2 Encodings and ids
 - **Feature:** SHA-256 hex, base64url without padding, and 26-character base32 entry ids from 128 random bits.
@@ -175,7 +175,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.2-05 Two ids from the real RNG differ (sampled 10,000 times, no collision).
   - [ ] T1.2-06 Decoding an id with a wrong length or character is an error.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T1.2: encodings and ids`
+- **Commit:** `feat: T1.2 encodings and ids`
 
 #### T1.3 Domain-separated signatures
 - **Feature:** Ed25519 signing and verification over `prefix || canonical bytes`, where the prefix ends in a newline. Verification uses strict mode.
@@ -189,7 +189,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.3-06 Each prefix is exactly its ASCII string followed by `0x0A`.
   - [ ] T1.3-07 The Ed25519 test vectors from RFC 8032 verify.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T1.3: domain-separated Ed25519 signatures`
+- **Commit:** `feat: T1.3 domain-separated Ed25519 signatures`
 
 #### T1.4 Recipients, fingerprints, anchors
 - **Feature:** parse and print `age1...` recipients (bech32), compute device fingerprints, format and parse anchors.
@@ -208,7 +208,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.4-11 Anchor with a non-hex group, a missing group, or a version of 0 is rejected.
   - [ ] T1.4-12 Fingerprint and anchor vectors match `core/vault-core/tests/vectors/`.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T1.4: recipients, fingerprints, anchors`
+- **Commit:** `feat: T1.4 recipients, fingerprints, anchors`
 
 #### T1.5 Secret types
 - **Feature:** wrapper types for master password, private keys, decrypted passwords, OTP secrets and codes. They zeroise on drop and never print their contents.
@@ -221,7 +221,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.5-05 Equality on secrets compares in constant time (test with a timing-independent check or use `subtle`).
   - [ ] T1.5-06 Secrets cannot be serialised with `serde` (compile-fail test).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T1.5: secret types`
+- **Commit:** `feat: T1.5 secret types`
 
 #### T1.6 age wrapper and header spike
 - **Feature:** encrypt to a set of recipients, decrypt with an identity, using the `age` crate. Spike whether a recipient can be added by rewriting only the header (for T5.3). Record the answer in the commit message and in the tests.
@@ -239,7 +239,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.6-10 If the spike succeeds: the original recipient still decrypts the payload after the header rewrite.
   - [ ] T1.6-11 Cross-check: a file written by the crate is decrypted by the Go `age` CLI in the CI job (required once T0.2 runs it).
 - **Green when:** G1 to G3, G6, and T1.6-11 passes in CI.
-- **Commit:** `T1.6: age wrapper; header rewrite spike outcome <supported|not supported>`
+- **Commit:** `feat: T1.6 age wrapper and header rewrite spike`
 
 #### T1.7 Entry plaintext format
 - **Feature:** serialise and parse the three entry types with the padding rule.
@@ -259,7 +259,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.7-12 `conflictOf` and `rotate` are optional and round-trip.
   - [ ] T1.7-13 Invalid JSON, a missing `v`, and `v` not equal to 1 are rejected.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T1.7: entry plaintext format`
+- **Commit:** `feat: T1.7 entry plaintext format`
 
 #### T1.8 Entry signature
 - **Feature:** sign the canonical entry without `sig` with the `argus-entry-v1` prefix; verify against the device list.
@@ -272,7 +272,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.8-05 A signature made with the `devices` prefix does not verify as an entry.
   - [ ] T1.8-06 A `sig` missing from the entry fails verification.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T1.8: entry signatures`
+- **Commit:** `feat: T1.8 entry signatures`
 
 #### T1.9 Store layout and store.json
 - **Feature:** create and read the store layout in a directory; enforce the format rule.
@@ -285,7 +285,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.9-05 An entry file whose name is not a valid id is ignored.
   - [ ] T1.9-06 A store root with `store.json` missing is reported as not a store.
 - **Green when:** G1 to G3, G5, G6.
-- **Commit:** `T1.9: store layout and store.json`
+- **Commit:** `feat: T1.9 store layout and store.json`
 
 #### T1.10 Data folder and permissions
 - **Feature:** create the per-platform data folder with the right modes; honour `ARGUS_HOME`.
@@ -298,7 +298,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T1.10-05 A path with a symbolic link at the data folder is refused.
   - [ ] T1.10-06 The default macOS path is `~/Library/Application Support/Argus/` for a given home directory.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T1.10: data folder and permissions`
+- **Commit:** `feat: T1.10 data folder and permissions`
 
 ### Phase 2: keys and session
 
@@ -316,7 +316,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T2.1-08 `deviceId`, `ageSecret` and `signSeed` are the only fields in the plaintext; the JSON shape matches 03 section 3.6.
   - [ ] T2.1-09 Two devices created in a row have different keys.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T2.1: device.key create and open`
+- **Commit:** `feat: T2.1 device.key create and open`
 
 #### T2.2 Session and lax-time policy
 - **Feature:** an unlocked session holding the keys. Two lax-time policies: `FromUnlock` (CLI) and `FromInteraction` (apps). `lax-time` 0 means no cached session.
@@ -331,7 +331,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T2.2-07 Lax time accepts values between 0 and a maximum, and rejects negatives and non-numbers.
   - [ ] T2.2-08 Time is injected, so tests do not sleep.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T2.2: session and lax-time policy`
+- **Commit:** `feat: T2.2 session and lax-time policy`
 
 #### T2.3 Master password change
 - **Feature:** change the master password by rewriting only `device.key`.
@@ -344,7 +344,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T2.3-05 A failure midway leaves the old `device.key` intact (atomic write: temp file, then rename).
   - [ ] T2.3-06 A new salt is used on each change.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T2.3: master password change`
+- **Commit:** `feat: T2.3 master password change`
 
 #### T2.4 SecureStorage interface
 - **Feature:** the core calls `saveKey`, `loadKey` and `deleteKey` on a trait. A test double implements it. The core never calls an OS API.
@@ -356,7 +356,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T2.4-04 The core compiles without any platform crate (dependency check in CI).
   - [ ] T2.4-05 The double records each call; a test asserts the expected sequence for unlock.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T2.4: SecureStorage interface`
+- **Commit:** `feat: T2.4 SecureStorage interface`
 
 ### Phase 3: git layer
 
@@ -375,7 +375,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T3.1-09 A commit with no changes is refused or skipped (decision recorded).
   - [ ] T3.1-10 Missing author configuration is refused.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T3.1: local git operations`
+- **Commit:** `feat: T3.1 local git operations`
 
 #### T3.2 Remote URLs, credentials, host keys
 - **Feature:** accept scp-like SSH, `ssh://`, and `https://` remotes; store credentials through SecureStorage; verify SSH host keys.
@@ -389,7 +389,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T3.2-06 Credentials are read from SecureStorage and never printed.
   - [ ] T3.2-07 An HTTPS token is sent as a header, not in the URL (checked with a local test server).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T3.2: remote URLs, credentials, host keys`
+- **Commit:** `feat: T3.2 remote URLs, credentials, host keys`
 
 #### T3.3 Fetch and push, refusal checks
 - **Feature:** fetch and push with the remote; refuse a shallow clone and a remote that has files but no `store.json`.
@@ -402,7 +402,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T3.3-05 An empty remote is accepted for init.
   - [ ] T3.3-06 Push sends only commits; no entry plaintext is sent in the pack (checked by decrypting nothing).
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T3.3: fetch, push, refusal checks`
+- **Commit:** `feat: T3.3 fetch, push, refusal checks`
 
 #### T3.4 Network error policy
 - **Feature:** a network failure retries up to 3 times and then returns a decision request to the caller. Retry is in the core; the asking is in the UI or CLI.
@@ -414,7 +414,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T3.4-04 An auth failure is `RemoteRejected` and is not retried.
   - [ ] T3.4-05 Retry count is the same for fetch and push.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T3.4: network error policy`
+- **Commit:** `feat: T3.4 network error policy`
 
 #### T3.5 libgit2 for iOS spike
 - **Feature:** build libgit2 (and its SSH and TLS dependencies) for iOS device and simulator; run the T3.1 and T3.3 smoke tests in the simulator.
@@ -426,7 +426,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T3.5-04 Build size and time are recorded in the commit message.
   - [ ] T3.5-05 The build script is documented in `core/README.md`.
 - **Green when:** G2 (Apple job), G6. If the spike fails, the task is BLOCKED and the owner decides the fallback.
-- **Commit:** `T3.5: libgit2 iOS spike`
+- **Commit:** `feat: T3.5 libgit2 iOS spike`
 
 ### Phase 4: device list and trust
 
@@ -441,7 +441,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T4.1-05 A device name with control characters is rejected.
   - [ ] T4.1-06 `gitKey` is optional.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T4.1: device list model and devices.sig`
+- **Commit:** `feat: T4.1 device list model and devices.sig`
 
 #### T4.2 Chain verification
 - **Feature:** verify every rule in 03 section 3.5 (Verification) over a chain of versions.
@@ -466,7 +466,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T4.2-17 A shallow history is refused.
   - [ ] T4.2-18 Every case in `core/vault-core/tests/vectors/` gives its expected result.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T4.2: device list chain verification`
+- **Commit:** `feat: T4.2 device list chain verification`
 
 #### T4.3 Pin, rollback and fork
 - **Feature:** store `(storeId, version, hash)` in `trust.json`; reject lower versions (rollback) and same-version different bytes (fork).
@@ -481,7 +481,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T4.3-07 A corrupt `trust.json` refuses sync and asks the user (no silent reset).
   - [ ] T4.3-08 `trust.json` cannot be read as a different store's pin (storeId mismatch fails).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T4.3: pin, rollback and fork detection`
+- **Commit:** `feat: T4.3 pin, rollback and fork detection`
 
 #### T4.4 Recipient set and encrypt guard
 - **Feature:** entries are encrypted only to the recipients of the newest verified list; encryption refuses when the list is not verified.
@@ -492,7 +492,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T4.4-03 A device removed in a newer version is not a recipient of new entries.
   - [ ] T4.4-04 An entry signed by a device not in the current list is refused with a security alert and is not marked damaged (03 section 3.4).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T4.4: recipient set and encrypt guard`
+- **Commit:** `feat: T4.4 recipient set and encrypt guard`
 
 ### Phase 5: join, approve, verify
 
@@ -508,7 +508,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T5.1-06 A network failure during push is reported and retried per T3.4.
   - [ ] T5.1-07 The first commit's message is `init`.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T5.1: init`
+- **Commit:** `feat: T5.1 init`
 
 #### T5.2 join request
 - **Feature:** a new device writes `pending-<deviceId>.json`, signed with `argus-join-v1`, commits, pushes, and records `join_state.json`.
@@ -522,7 +522,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T5.2-06 Re-running the join request replaces the pending file for the same device, and does not duplicate it.
   - [ ] T5.2-07 The join commit's message is `update`.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T5.2: join request`
+- **Commit:** `feat: T5.2 join request`
 
 #### T5.3 approve
 - **Feature:** a trusted device lists valid pending requests, requires fingerprint confirmation, adds the device to a new signed list, adds the new recipient to every entry, commits once, pushes, and shows the anchor.
@@ -540,7 +540,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T5.3-10 Approving a device already in the list is refused.
   - [ ] T5.3-11 The approve commit's message is `update`.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T5.3: approve device`
+- **Commit:** `feat: T5.3 approve device`
 
 #### T5.4 verify anchor
 - **Feature:** the new device checks the anchor against the remote history and pins the approved version.
@@ -553,7 +553,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T5.4-05 After verify, the new device decrypts entries and builds the index.
   - [ ] T5.4-06 Verify without a pending join is refused.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T5.4: verify anchor`
+- **Commit:** `feat: T5.4 verify anchor`
 
 #### T5.5 reconcile
 - **Feature:** after each pull, count X25519 recipient stanzas per entry and repair mismatches.
@@ -565,7 +565,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T5.5-04 Repaired entries are committed in one commit.
   - [ ] T5.5-05 A repair failure leaves the entry unchanged and reports it.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T5.5: reconcile recipients`
+- **Commit:** `feat: T5.5 reconcile recipients`
 
 #### T5.6 concurrent device-list changes
 - **Feature:** when the push of a list change is rejected, the change is re-applied on top of the latest verified list and signed again.
@@ -576,7 +576,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T5.6-03 A re-apply that conflicts with a removal fails with a clear error.
   - [ ] T5.6-04 No automatic merge of two different lists occurs.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T5.6: concurrent device-list changes`
+- **Commit:** `feat: T5.6 concurrent device-list changes`
 
 ### Phase 6: entries, search, OTP, generator, conflicts
 
@@ -593,7 +593,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.1-07 Writing an entry over 1 MiB is refused.
   - [ ] T6.1-08 Writes do not commit (T7.1 owns commit timing).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T6.1: entry create, read, update, delete`
+- **Commit:** `feat: T6.1 entry create, read, update, delete`
 
 #### T6.2 Index and search
 - **Feature:** an in-memory index of headers (name fields only), fuzzy search with the ranking rules in the CLI reference.
@@ -612,7 +612,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.2-11 Search over 1,000 entries completes in under 50 ms on the reference runner (performance test, see T10.3).
   - [ ] T6.2-12 Reserved words are rejected as names, with the list in 06 section 6.3.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T6.2: index and search`
+- **Commit:** `feat: T6.2 index and search`
 
 #### T6.3 Index maintenance and lock
 - **Feature:** the index is built on unlock, updated for changed files after pull, and dropped on lock.
@@ -624,7 +624,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.3-04 Lock drops the index; no index data remains reachable.
   - [ ] T6.3-05 The index is never written to disk (test scans the data folder after unlock and search).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T6.3: index maintenance and lock`
+- **Commit:** `feat: T6.3 index maintenance and lock`
 
 #### T6.4 Damaged entries
 - **Feature:** entries that cannot be read, whose id does not match the file name, or whose signature is invalid are listed as damaged and never deleted automatically.
@@ -636,7 +636,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.4-04 Damaged entries are never deleted by any operation (test each operation).
   - [ ] T6.4-05 A damaged entry does not stop the rest of the store from loading.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T6.4: damaged entries`
+- **Commit:** `feat: T6.4 damaged entries`
 
 #### T6.5 Password generator
 - **Feature:** generate passwords from selected sets and a length (default 20), using the OS RNG and rejection sampling.
@@ -651,7 +651,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.5-07 Output is `SecretBytes` (T1.5).
   - [ ] T6.5-08 The generator never blocks saving; strength is informational only.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T6.5: password generator`
+- **Commit:** `feat: T6.5 password generator`
 
 #### T6.6 OTP parsing and codes
 - **Feature:** parse `otpauth://` URLs for TOTP and HOTP; compute codes; advance the HOTP counter and commit.
@@ -671,7 +671,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.6-12 A code is zero-padded to its digit count.
   - [ ] T6.6-13 The seconds remaining in a TOTP period are computed correctly at period boundaries.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T6.6: OTP parsing and codes`
+- **Commit:** `feat: T6.6 OTP parsing and codes`
 
 #### T6.7 OTP separation
 - **Feature:** OTP entries are listed only by the MFA listing; they are excluded from the entry listing; edit refuses them.
@@ -683,7 +683,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.7-04 The MFA listing does not include credentials or notes.
   - [ ] T6.7-05 Both listings are sorted by name, ascending (06 section 6.5.3).
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T6.7: OTP separation`
+- **Commit:** `feat: T6.7 OTP separation`
 
 #### T6.8 Conflict detection and resolution
 - **Feature:** when the same entry changed on both sides, order the versions by git history, keep the latest as the entry, and keep older versions as conflict copies with `conflictOf`. Resolve with "use current" or "use older".
@@ -699,7 +699,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T6.8-08 No version is silently discarded.
   - [ ] T6.8-09 The device list is never merged this way.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T6.8: conflict detection and resolution`
+- **Commit:** `feat: T6.8 conflict detection and resolution`
 
 ### Phase 7: sync and revoke
 
@@ -713,7 +713,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.1-04 Every commit made by these operations has the message `update`.
   - [ ] T7.1-05 A process killed after writing and before commit leaves the working tree intact and the next operation commits it.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T7.1: commit timing`
+- **Commit:** `feat: T7.1 commit timing`
 
 #### T7.2 Pull
 - **Feature:** fetch, verify the device list, verify and index changed entries, combine the changes (fast-forward or merge commit `update`), report counts.
@@ -729,7 +729,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.2-08 If the user postpones a conflict, the older version is kept as a conflict copy and sync is blocked with exit 9 (04 section 4.9).
   - [ ] T7.2-07 With changes on both sides and no conflict, the result is a merge with message `update` and no prompt (04 section 4.8).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T7.2: pull`
+- **Commit:** `feat: T7.2 pull`
 
 #### T7.3 Push and retry
 - **Feature:** push; if rejected, fetch, verify, combine the changes as in pull (04 section 4.8), and retry, at most 3 times, then return a decision request.
@@ -741,7 +741,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.3-04 Verification failure during a retry stops the retry at once.
   - [ ] T7.3-05 Each retry re-verifies the device list.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T7.3: push and retry`
+- **Commit:** `feat: T7.3 push and retry`
 
 #### T7.4 Offline unlock
 - **Feature:** unlock and local reads work without a network; sync is offered later.
@@ -752,7 +752,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.4-03 Pending local changes are kept while offline.
   - [ ] T7.4-04 A push while offline returns `RemoteUnreachable` and retries per T3.4.
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T7.4: offline unlock`
+- **Commit:** `feat: T7.4 offline unlock`
 
 #### T7.5 Revoke
 - **Feature:** remove a device: new signed list, re-encrypt every entry with fresh file keys, re-sign each entry, set rotate flags, commit as `update`, push.
@@ -769,7 +769,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.5-09 A revoked device that pulls finds itself missing and returns `Revoked`, with the lock-and-delete-only behaviour.
   - [ ] T7.5-10 The revoked device's previously held data is unchanged on its own disk (documented, not deleted by Argus).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T7.5: revoke device`
+- **Commit:** `feat: T7.5 revoke device`
 
 #### T7.6 Remote cleanup: GitHub
 - **Feature:** create an installation token from the GitHub App's private key, and delete the removed device's deploy key through the GitHub API.
@@ -785,7 +785,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.6-08 The App private key is never logged or sent to a server other than GitHub.
   - [ ] T7.6-09 A device without App credentials shows manual steps and marks cleanup pending.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T7.6: remote cleanup on GitHub`
+- **Commit:** `feat: T7.6 remote cleanup on GitHub`
 
 #### T7.7 Remote cleanup: other hosts
 - **Feature:** for hosts other than GitHub, return the steps to remove the credential and keep the revocation in "remote cleanup pending" until the user confirms.
@@ -796,7 +796,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.7-03 Confirmation clears the pending state.
   - [ ] T7.7-04 Pending state survives a restart (stored in the data folder).
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T7.7: remote cleanup on other hosts`
+- **Commit:** `feat: T7.7 remote cleanup on other hosts`
 
 #### T7.8 GitHub App key rotation (manual steps)
 - **Feature:** after each revoke, show the manual steps to rotate the GitHub App's private key.
@@ -806,7 +806,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T7.8-02 Cleanup stays pending until the user confirms the rotation.
   - [ ] T7.8-03 `argus config github-app` accepts the new key and replaces the Keychain item (T8.13-06).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T7.8: GitHub App key rotation`
+- **Commit:** `feat: T7.8 GitHub App key rotation`
 
 ### Phase 8: CLI and agent
 
@@ -823,7 +823,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.1-05 Ctrl-C exits 130.
   - [ ] T8.1-06 Output for data goes to stdout; prompts and messages to stderr (checked with separate capture).
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T8.1: CLI skeleton and exit codes`
+- **Commit:** `feat: T8.1 CLI skeleton and exit codes`
 
 #### T8.2 Agent and lax time (CLI)
 - **Feature:** a background agent holds the unlocked key on a Unix socket in the data folder (mode 0600). The lax time counts from the unlock. `lax-time` 0 means no cached key.
@@ -841,7 +841,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.2-10 With `lax-time` 0, the rules in 05 apply: every modify and reveal asks each time; listing does not re-prompt beyond the unlock.
   - [ ] T8.2-11 No biometric path exists in the CLI.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.2: agent and lax time`
+- **Commit:** `feat: T8.2 agent and lax time`
 
 #### T8.3 init and join commands
 - **Feature:** `argus init` with prompts or `--remote` and `--name`; join mode prints the fingerprint and exits 8; `argus device verify` for the new device is in T8.12.
@@ -855,7 +855,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.3-06 Network failure exits 6.
   - [ ] T8.3-07 The master password is not accepted as an argument (refused with exit 2).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.3: init and join commands`
+- **Commit:** `feat: T8.3 init and join commands`
 
 #### T8.4 add
 - **Feature:** add a credential or secret note: type picker, optional prefill argument, password typed or generated, content from the editor or multi-line input, update on same URL and username with a warning.
@@ -873,7 +873,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.4-10 The command writes the file and does not commit (T7.1).
   - [ ] T8.4-11 Non-interactive add with all required flags succeeds; a missing flag exits 2.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.4: add`
+- **Commit:** `feat: T8.4 add`
 
 #### T8.5 ls
 - **Feature:** list credentials and secret notes by decrypted names, with optional filter, count, JSON, and flag filters. OTP entries are excluded.
@@ -889,7 +889,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.5-08 OTP entries never appear in `ls` output.
   - [ ] T8.5-09 The FLAGS column shows `r` and `c` as specified.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.5: ls`
+- **Commit:** `feat: T8.5 ls`
 
 #### T8.6 show, --field, picker
 - **Feature:** `argus <name>` shows an entry; `--field url|username|password|note` prints one value; ambiguous names use the picker or exit 4.
@@ -903,7 +903,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.6-06 A reveal with `lax-time` 0 asks for the password (T8.2-10).
   - [ ] T8.6-07 The password is printed in clear only when asked; `-c` is the safer path (no test for the warning text beyond presence).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.6: show, --field, picker`
+- **Commit:** `feat: T8.6 show, --field, picker`
 
 #### T8.7 copy to clipboard
 - **Feature:** `argus -c <name> [-t <seconds>]` copies the password and starts a detached helper that clears the clipboard after the time, only if it still holds the copied value.
@@ -918,7 +918,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.7-07 A secret note cannot be copied this way (exit 2).
   - [ ] T8.7-08 The helper holds no secret after clearing (T1.5 zeroise).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.7: copy to clipboard`
+- **Commit:** `feat: T8.7 copy to clipboard`
 
 #### T8.8 edit
 - **Feature:** update fields of a credential or note; Enter keeps, typing replaces, `g` generates a new password; replacing the password clears the rotate flag; OTP entries are refused.
@@ -935,7 +935,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.8-09 Changing the URL or username updates the index at once.
   - [ ] T8.8-10 `edit` writes the file and does not commit (T7.1).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.8: edit`
+- **Commit:** `feat: T8.8 edit`
 
 #### T8.9 rm
 - **Feature:** delete an entry with a confirmation; `-y` skips it; a warning about git history appears the first time.
@@ -949,7 +949,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.9-06 No match exits 3.
   - [ ] T8.9-07 Deleting an OTP entry with `rm` is refused (use `mfa rm`).
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T8.9: rm`
+- **Commit:** `feat: T8.9 rm`
 
 #### T8.10 push and pull commands
 - **Feature:** `argus push` and `argus pull`, refusing while conflicts exist (exit 9), with exit 6 and exit 7 for network and verification failures.
@@ -963,7 +963,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.10-06 A rejected push retries exactly 3 times, then asks.
   - [ ] T8.10-07 `promote` resolves the conflict and the next push works.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.10: push and pull commands`
+- **Commit:** `feat: T8.10 push and pull commands`
 
 #### T8.11 mfa commands
 - **Feature:** `mfa ls`, `mfa add` (URL or `--qr` image, `--link`), `mfa rm`, and `mfa <name> [-c]` for codes.
@@ -981,7 +981,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.11-10 `mfa rm` asks for confirmation; `-y` skips it.
   - [ ] T8.11-11 Showing a code follows the unlock rules (no extra prompt inside the lax time).
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.11: mfa commands`
+- **Commit:** `feat: T8.11 mfa commands`
 
 #### T8.12 device commands
 - **Feature:** `device ls`, `device add` (approve), `device verify` (finish joining), `device rm` (revoke).
@@ -996,7 +996,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.12-07 Revoking the device you are on is refused.
   - [ ] T8.12-08 The command ends by pointing to `argus ls --rotate`.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.12: device commands`
+- **Commit:** `feat: T8.12 device commands`
 
 #### T8.13 lock, passwd, config, promote
 - **Feature:** `argus lock`, `argus passwd`, `argus config get|set` (keys `lax-time`, `clear-after`, `editor`, remote URL) and `config github-app`, `argus promote <name>`.
@@ -1011,7 +1011,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.13-07 `promote <name>` lists conflict copies, takes a choice, and deletes the previous current version.
   - [ ] T8.13-08 `promote` on an entry without conflicts exits 3.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.13: lock, passwd, config, promote`
+- **Commit:** `feat: T8.13 lock, passwd, config, promote`
 
 #### T8.14 Non-interactive mode
 - **Feature:** when stdin or stdout is not a terminal, commands that would prompt fail with an exit code, not a guess.
@@ -1023,7 +1023,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.14-04 Colours are off when output is not a terminal or `NO_COLOR` is set.
   - [ ] T8.14-05 A command with all flags given never prompts (checked with a closed stdin).
 - **Green when:** G1 to G3, G6.
-- **Commit:** `T8.14: non-interactive mode`
+- **Commit:** `feat: T8.14 non-interactive mode`
 
 #### T8.15 Editor hygiene
 - **Feature:** the editor runs in a private temporary folder (mode 0700), with swap, backup and undo off; the temp file is deleted afterwards, even on error.
@@ -1036,7 +1036,7 @@ Every CLI task checks the exit codes in 06 section 6.6 and the stream rules in 0
   - [ ] T8.15-05 The temp file is deleted after the editor fails.
   - [ ] T8.15-06 The temp file is deleted after Ctrl-C.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T8.15: editor hygiene`
+- **Commit:** `feat: T8.15 editor hygiene`
 
 ### Phase 9: apps
 
@@ -1052,7 +1052,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.1-04 No platform type crosses the boundary (checked by the FFI interface file).
   - [ ] T9.1-05 Errors map to the enum in 01 core API.
 - **Green when:** G2 (Apple job), G3, G6.
-- **Commit:** `T9.1: UniFFI bindings and XCFramework`
+- **Commit:** `feat: T9.1 UniFFI bindings and XCFramework`
 
 #### T9.2 Swift SecureStorage
 - **Feature:** implement the core's `SecureStorage` with the Keychain, this device only, no biometrics in v1.
@@ -1063,7 +1063,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.2-03 A missing item returns nil.
   - [ ] T9.2-04 No biometric access control is set in v1.
 - **Green when:** G2 (Apple job), G6.
-- **Commit:** `T9.2: Swift SecureStorage`
+- **Commit:** `feat: T9.2 Swift SecureStorage`
 
 #### T9.3 macOS shell, unlock and lock
 - **Feature:** the app window, the Unlock screen, the lax time from the last interaction, lock on inactivity.
@@ -1075,7 +1075,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.3-04 Interaction restarts the lax time; no interaction for 45 s locks.
   - [ ] T9.3-05 Lock zeroes the keys and returns to Unlock.
 - **Green when:** G2 (Apple job), G6.
-- **Commit:** `T9.3: macOS shell, unlock and lock`
+- **Commit:** `feat: T9.3 macOS shell, unlock and lock`
 
 #### T9.4 macOS entries, detail, reveal, copy
 - **Feature:** the sidebar, the All list grouped by type with collapsible labels (OTP excluded), the detail pane, inline reveal, copy with a 30 s clear.
@@ -1089,7 +1089,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.4-06 Copy places the password on the pasteboard, concealed, and clears it after 30 s.
   - [ ] T9.4-07 A countdown toast shows during the clear.
 - **Green when:** G2, G6.
-- **Commit:** `T9.4: macOS entries, detail, reveal, copy`
+- **Commit:** `feat: T9.4 macOS entries, detail, reveal, copy`
 
 #### T9.5 macOS add and edit popup, generator
 - **Feature:** the add and edit sheet (7.3.5), the generator panel, the duplicate warning, the note variant.
@@ -1103,7 +1103,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.5-06 Strength is shown and never blocks Save.
   - [ ] T9.5-07 Save writes the entry and does not commit (T7.1).
 - **Green when:** G2, G6.
-- **Commit:** `T9.5: macOS add and edit popup, generator`
+- **Commit:** `feat: T9.5 macOS add and edit popup, generator`
 
 #### T9.6 macOS sync button, conflicts, rotation list
 - **Feature:** the sync button with its states (7.4), the conflict screen (7.4.1), the passwords-to-change screen (7.4.2).
@@ -1118,7 +1118,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.6-07 Passwords to change lists flagged entries; Generate saves a new password and clears the flag; Done clears the flag only.
   - [ ] T9.6-08 The count "N of M left" updates.
 - **Green when:** G2, G6.
-- **Commit:** `T9.6: macOS sync, conflicts, rotation list`
+- **Commit:** `feat: T9.6 macOS sync, conflicts, rotation list`
 
 #### T9.7 macOS devices, MFA, settings
 - **Feature:** the Devices screen (7.3.7), the MFA screen (7.3.6), Settings (7.3.9).
@@ -1132,7 +1132,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.7-06 Settings shows theme, sync fields, security fields (lax time, clipboard time), and Biometrics "Next version".
   - [ ] T9.7-07 Changing lax time or clipboard time writes `config`.
 - **Green when:** G2, G6.
-- **Commit:** `T9.7: macOS devices, MFA, settings`
+- **Commit:** `feat: T9.7 macOS devices, MFA, settings`
 
 #### T9.8 iOS app
 - **Feature:** the same screens in the tab layout (7.2 iOS), the first-launch flows (7.3.8), pull-to-sync, and the backup-excluded data folder.
@@ -1146,7 +1146,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.8-06 The data folder has the backup-excluded attribute.
   - [ ] T9.8-07 Clipboard copy uses local-only with an expiry (07 and 05).
 - **Green when:** G2 (Apple job), G6.
-- **Commit:** `T9.8: iOS app`
+- **Commit:** `feat: T9.8 iOS app`
 
 #### T9.9 Blur, lock triggers, clipboard expiry
 - **Feature:** blur in previews and background; lock on display off, screen lock and user switch; the same rules on every device.
@@ -1159,7 +1159,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.9-05 `lax-time` 0 requires the password for every modify and reveal in the app.
   - [ ] T9.9-06 Copy's expiry on iOS is set to 30 s.
 - **Green when:** G2, G6.
-- **Commit:** `T9.9: blur, lock triggers, clipboard expiry`
+- **Commit:** `feat: T9.9 blur, lock triggers, clipboard expiry`
 
 #### T9.10 Accessibility and localisation
 - **Feature:** the accessibility rules in 07 section 7.6; dates in DD-MM-YYYY and HH:mm in device time in every language.
@@ -1175,7 +1175,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T9.10-08 Dates render as DD-MM-YYYY and times as HH:mm for three device locales.
   - [ ] T9.10-09 All user strings are in resource files (no literal strings in views; checked by a lint).
 - **Green when:** G2, G6.
-- **Commit:** `T9.10: accessibility and localisation`
+- **Commit:** `feat: T9.10 accessibility and localisation`
 
 ### Phase 10: hardening and release
 
@@ -1188,7 +1188,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T10.1-03 Every crash found is turned into a regression test before the fix.
   - [ ] T10.1-04 The corpus is committed.
 - **Green when:** G1, G2, and the fuzz runs pass.
-- **Commit:** `T10.1: fuzzing`
+- **Commit:** `test: T10.1 fuzzing`
 
 #### T10.2 Log audit
 - **Feature:** an audit that the logs contain only the allowed fields and never a forbidden one.
@@ -1200,7 +1200,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T10.2-04 Rotation at 1 MB keeps three files.
   - [ ] T10.2-05 Debug-level output is absent from release builds.
 - **Green when:** G1, G4, G6.
-- **Commit:** `T10.2: log audit`
+- **Commit:** `chore: T10.2 log audit`
 
 #### T10.3 Limits and performance
 - **Feature:** enforce 20 devices, 10,000 entries, 1 MiB per entry, and measure unlock and search times.
@@ -1212,7 +1212,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T10.3-04 Search over 1,000 entries completes in under 50 ms.
   - [ ] T10.3-05 Results and the reference hardware are recorded in the commit message.
 - **Green when:** G1 to G3, performance tests pass on the reference runner, G6. If a target is missed, the task is BLOCKED and the owner decides.
-- **Commit:** `T10.3: limits and performance`
+- **Commit:** `chore: T10.3 limits and performance`
 
 #### T10.4 scrypt benchmark and fallback
 - **Feature:** measure scrypt at log2(N) 18 and 17 on the reference devices; confirm the parameters fit the memory limit.
@@ -1223,7 +1223,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T10.4-03 The fallback to 17 triggers on a device that cannot allocate 256 MiB (simulated).
   - [ ] T10.4-04 The app does not exceed its memory limit at 18 on the reference iPhone.
 - **Green when:** G6, measurements recorded. If the iPhone cannot run 18, the owner decides.
-- **Commit:** `T10.4: scrypt benchmark and fallback`
+- **Commit:** `chore: T10.4 scrypt benchmark and fallback`
 
 #### T10.5 Format migration
 - **Feature:** `argus migrate` for a breaking format change: back up, rewrite, commit once as `update`, push; a failure leaves the backup and an unchanged remote.
@@ -1235,7 +1235,7 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T10.5-04 Other devices refuse to sync until they update (`FormatUnsupported`).
   - [ ] T10.5-05 Additive changes keep format 1 and older clients keep unknown types.
 - **Green when:** G1 to G4, G6.
-- **Commit:** `T10.5: format migration`
+- **Commit:** `feat: T10.5 format migration`
 
 #### T10.6 Build from source instructions
 - **Feature:** a documented build from a clean checkout, with the toolchain versions.
@@ -1246,11 +1246,11 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
   - [ ] T10.6-03 The build uses no network beyond fetching declared dependencies.
   - [ ] T10.6-04 The toolchain versions are pinned in the repo.
 - **Green when:** G2 (clean-container job), G6.
-- **Commit:** `T10.6: build from source instructions`
+- **Commit:** `docs: T10.6 build from source instructions`
 
 #### T10.7 External security review
 - **Feature:** an independent review of the core, the protocol and the apps before 1.0.
 - **Spec:** 01 milestone 8.
 - **BLOCKED (external):** needs a reviewer and a scope. Not automatable.
 - **Green when:** the review is complete and every finding is fixed or accepted by the owner.
-- **Commit:** `T10.7: external review fixes`
+- **Commit:** `fix: T10.7 external review fixes`

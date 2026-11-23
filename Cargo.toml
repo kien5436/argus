@@ -1,0 +1,3 @@
+[workspace]
+members = ["core/vault-core", "core/vault-ffi", "core/cli"]
+resolver = "2"
