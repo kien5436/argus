@@ -5,5 +5,8 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+data-encoding = "2.11.1"
+rand = "0.10.4"
 serde = "1.0.229"
 serde_json = { version = "1.0.154", features = ["arbitrary_precision"] }
+sha2 = "0.11.1"

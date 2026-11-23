@@ -31,7 +31,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T0.2 | CI pipeline | T0.1 | GREEN | |
 | T0.3 | Spec sync check | T0.2 | DROPPED (owner decision 2026-11-23) | |
 | T1.1 | Canonical JSON | T0.2 | GREEN | |
-| T1.2 | Encodings and ids | T1.1 | TODO | |
+| T1.2 | Encodings and ids | T1.1 | GREEN | |
 | T1.3 | Domain-separated signatures | T1.2 | TODO | |
 | T1.4 | Recipients, fingerprints, anchors | T1.3 | TODO | |
 | T1.5 | Secret types | T1.4 | TODO | |
@@ -162,12 +162,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** SHA-256 hex, base64url without padding, and 26-character base32 entry ids from 128 random bits.
 - **Spec:** 03 section 3.1.
 - **Tests:**
-  - [ ] T1.2-01 SHA-256 matches the NIST vector for `""` and for `"abc"`.
-  - [ ] T1.2-02 base64url encodes and decodes the RFC 4648 vectors and never emits `=`, `+` or `/`.
-  - [ ] T1.2-03 An id is exactly 26 characters, all in `[a-z2-7]`.
-  - [ ] T1.2-04 Id generation uses the injected OS RNG; a fixed RNG produces a fixed id (test seam).
-  - [ ] T1.2-05 Two ids from the real RNG differ (sampled 10,000 times, no collision).
-  - [ ] T1.2-06 Decoding an id with a wrong length or character is an error.
+  - [x] T1.2-01 SHA-256 matches the NIST vector for `""` and for `"abc"`.
+  - [x] T1.2-02 base64url encodes and decodes the RFC 4648 vectors and never emits `=`, `+` or `/`.
+  - [x] T1.2-03 An id is exactly 26 characters, all in `[a-z2-7]`.
+  - [x] T1.2-04 Id generation uses the injected OS RNG; a fixed RNG produces a fixed id (test seam).
+  - [x] T1.2-05 Two ids from the real RNG differ (sampled 10,000 times, no collision).
+  - [x] T1.2-06 Decoding an id with a wrong length or character is an error.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T1.2 encodings and ids`
 
