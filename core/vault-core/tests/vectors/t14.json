@@ -1,0 +1,9 @@
+{
+  "ed25519": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+  "x25519": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "fingerprint_hex": "1a08f8d12ea86c6f43c0bfe541afa65588c1ade90c96fae0ff259285adc3d24c",
+  "fingerprint_display": "1a08 f8d1 2ea8 6c6f 43c0 bfe5 41af a655",
+  "anchor_file": "{\"v\":3}",
+  "anchor_version": 3,
+  "anchor_display": "v3 ff3a cadf 3b29 fc4f a59d 5b96 12db 3996"
+}

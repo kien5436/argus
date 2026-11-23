@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+bech32 = "0.12.0"
 data-encoding = "2.11.1"
 ed25519-dalek = "3.0.0"
 rand = "0.10.4"

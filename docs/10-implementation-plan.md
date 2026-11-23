@@ -33,7 +33,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.1 | Canonical JSON | T0.2 | GREEN | |
 | T1.2 | Encodings and ids | T1.1 | GREEN | |
 | T1.3 | Domain-separated signatures | T1.2 | GREEN | |
-| T1.4 | Recipients, fingerprints, anchors | T1.3 | TODO | |
+| T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | |
 | T1.5 | Secret types | T1.4 | TODO | |
 | T1.6 | age wrapper and header spike | T1.5 | TODO | |
 | T1.7 | Entry plaintext format | T1.6 | TODO | |
@@ -189,18 +189,18 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** parse and print `age1...` recipients (bech32), compute device fingerprints, format and parse anchors.
 - **Spec:** 03 sections 3.5 (Fingerprint, Anchor) and 4.4. Anchor input is not case-sensitive and ignores spaces.
 - **Tests:**
-  - [ ] T1.4-01 bech32 matches the BIP-173 vector `a12uel5l`.
-  - [ ] T1.4-02 A valid recipient round-trips to the same string and is 62 characters long.
-  - [ ] T1.4-03 A recipient with a bad checksum is rejected.
-  - [ ] T1.4-04 A recipient with the wrong prefix (not `age`) is rejected.
-  - [ ] T1.4-05 A recipient with a bad character is rejected.
-  - [ ] T1.4-06 Fingerprint equals SHA-256 of `argus-device-v1\n` + Ed25519 key + X25519 key, for fixed keys.
-  - [ ] T1.4-07 Fingerprint display is 8 groups of 4 lowercase hex characters from the first 16 bytes.
-  - [ ] T1.4-08 Anchor is `v<version>` followed by 8 groups from the first 16 bytes of SHA-256 of the file bytes.
-  - [ ] T1.4-09 Anchor parse accepts the canonical form.
-  - [ ] T1.4-10 Anchor parse ignores case and spaces (03 section 3.5).
-  - [ ] T1.4-11 Anchor with a non-hex group, a missing group, or a version of 0 is rejected.
-  - [ ] T1.4-12 Fingerprint and anchor vectors match `core/vault-core/tests/vectors/`.
+  - [x] T1.4-01 bech32 matches the BIP-173 vector `a12uel5l`.
+  - [x] T1.4-02 A valid recipient round-trips to the same string and is 62 characters long.
+  - [x] T1.4-03 A recipient with a bad checksum is rejected.
+  - [x] T1.4-04 A recipient with the wrong prefix (not `age`) is rejected.
+  - [x] T1.4-05 A recipient with a bad character is rejected.
+  - [x] T1.4-06 Fingerprint equals SHA-256 of `argus-device-v1\n` + Ed25519 key + X25519 key, for fixed keys.
+  - [x] T1.4-07 Fingerprint display is 8 groups of 4 lowercase hex characters from the first 16 bytes.
+  - [x] T1.4-08 Anchor is `v<version>` followed by 8 groups from the first 16 bytes of SHA-256 of the file bytes.
+  - [x] T1.4-09 Anchor parse accepts the canonical form.
+  - [x] T1.4-10 Anchor parse ignores case and spaces (03 section 3.5).
+  - [x] T1.4-11 Anchor with a non-hex group, a missing group, or a version of 0 is rejected.
+  - [x] T1.4-12 Fingerprint and anchor vectors match `core/vault-core/tests/vectors/`.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T1.4 recipients, fingerprints, anchors`
 
