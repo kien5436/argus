@@ -28,7 +28,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | ID | Task | Depends on | Status | Commit |
 | --- | --- | --- | --- | --- |
 | T0.1 | Repository skeleton | none | GREEN | |
-| T0.2 | CI pipeline | T0.1 | TODO | |
+| T0.2 | CI pipeline | T0.1 | GREEN | |
 | T0.3 | Spec sync check | T0.2 | TODO | |
 | T1.1 | Canonical JSON | T0.3 | TODO | |
 | T1.2 | Encodings and ids | T1.1 | TODO | |
@@ -129,10 +129,10 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 #### T0.2 CI pipeline
 - **Feature:** CI runs the G2 checks on every push and pull request.
 - **Tests:**
-  - [ ] T0.2-01 A deliberate formatting error fails the pipeline, then the fix passes it.
-  - [ ] T0.2-02 A deliberate clippy warning fails the pipeline.
-  - [ ] T0.2-03 A failing unit test fails the pipeline.
-  - [ ] T0.2-04 `cargo deny` fails on a banned licence (use a fixture).
+  - [x] T0.2-01 A deliberate formatting error fails the pipeline, then the fix passes it.
+  - [x] T0.2-02 A deliberate clippy warning fails the pipeline.
+  - [x] T0.2-03 A failing unit test fails the pipeline.
+  - [x] T0.2-04 `cargo deny` fails on a banned licence (use a fixture).
 - **Green when:** G2 passes on the commit, and T0.2-01 to T0.2-04 are demonstrated and recorded in the commit message.
 - **Commit:** `build: T0.2 CI pipeline`
 
