@@ -46,7 +46,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T2.4 | SecureStorage interface | T2.3 | GREEN | 006f680 |
 | T3.1 | Local git operations (system git or libgit2) | T2.4 | GREEN | |
 | T3.2 | Remote URLs, credentials, host keys | T3.1 | GREEN | |
-| T3.3 | Fetch and push, refusal checks | T3.2 | TODO | |
+| T3.3 | Fetch and push, refusal checks | T3.2 | GREEN | |
 | T3.4 | Network error policy | T3.3 | TODO | |
 | T3.5 | libgit2 for iOS spike | T3.4 | TODO | |
 | T4.1 | Device list model and devices.sig | T3.5 | TODO | |
@@ -391,12 +391,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** fetch and push with the remote; refuse a shallow clone and a remote that has files but no `store.json`.
 - **Spec:** 04 section 4.8 (refusals); 04 section 4.1 (empty remote).
 - **Tests:**
-  - [ ] T3.3-01 Fetch and push against a local bare repository succeed.
-  - [ ] T3.3-02 A push rejected as non-fast-forward is reported as rejected (not as a network error).
-  - [ ] T3.3-03 A shallow clone is refused.
-  - [ ] T3.3-04 A remote with files but no `store.json` at its root is refused for init.
-  - [ ] T3.3-05 An empty remote is accepted for init.
-  - [ ] T3.3-06 Push sends only commits; no entry plaintext is sent in the pack (checked by decrypting nothing).
+  - [x] T3.3-01 Fetch and push against a local bare repository succeed.
+  - [x] T3.3-02 A push rejected as non-fast-forward is reported as rejected (not as a network error).
+  - [x] T3.3-03 A shallow clone is refused.
+  - [x] T3.3-04 A remote with files but no `store.json` at its root is refused for init.
+  - [x] T3.3-05 An empty remote is accepted for init.
+  - [x] T3.3-06 Push sends only commits; no entry plaintext is sent in the pack (checked by decrypting nothing).
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T3.3 fetch, push, refusal checks`
 

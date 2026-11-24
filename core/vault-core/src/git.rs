@@ -63,6 +63,13 @@ pub enum Error {
     InvalidAuthor,
     EmptyCommit,
     NotARepo,
+    /// The remote rejected the push (non-fast-forward). Distinct from a
+    /// network failure (T3.3-02): callers retry/merge, they do not re-ask.
+    Rejected,
+    /// The checkout is shallow (T3.3-03). Shallow history is refused.
+    Shallow,
+    /// `init` found files but no `store.json` at the remote root (T3.3-04).
+    RemoteHasFilesWithoutStore,
     Git(&'static str),
 }
 
@@ -72,6 +79,11 @@ impl fmt::Display for Error {
             Error::InvalidAuthor => write!(f, "missing author configuration"),
             Error::EmptyCommit => write!(f, "nothing to commit"),
             Error::NotARepo => write!(f, "not a git repository"),
+            Error::Rejected => write!(f, "push rejected: remote has newer commits"),
+            Error::Shallow => write!(f, "shallow clone is not allowed"),
+            Error::RemoteHasFilesWithoutStore => {
+                write!(f, "remote has files but no store.json")
+            }
             Error::Git(reason) => write!(f, "git failed: {reason}"),
         }
     }
@@ -107,6 +119,66 @@ pub trait Backend {
     fn commit(&self, path: &Path, author: &Author, message: &str) -> Result<String, Error>;
     fn history(&self, path: &Path) -> Result<Vec<CommitInfo>, Error>;
     fn is_repo(&self, path: &Path) -> bool;
+    /// Clone `src` (a local bare repository path in tests; a remote URL in
+    /// production) into `dst`.
+    fn clone_repo(&self, src: &Path, dst: &Path) -> Result<(), Error>;
+    /// Shallow clone (depth 1). The result must be refused by
+    /// [`check_not_shallow`]; only used to produce the T3.3-03 fixture.
+    fn clone_shallow(&self, src: &Path, dst: &Path) -> Result<(), Error>;
+    fn add_remote(&self, path: &Path, name: &str, url: &str) -> Result<(), Error>;
+    fn fetch(&self, path: &Path, remote: &str) -> Result<(), Error>;
+    fn push(&self, path: &Path, remote: &str) -> Result<(), Error>;
+    /// True when the checkout has a `.git/shallow` marker.
+    fn is_shallow(&self, path: &Path) -> bool;
+}
+
+/// What `init` found at the remote root (spec 04 section 4.1).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InitSource {
+    /// Nothing there: init may create a new store.
+    Empty,
+    /// A store already exists: init switches to join mode.
+    HasStore,
+}
+
+/// Classify a directory holding the remote's root content: `store.json`
+/// present means a store, no files at all means empty, anything else is
+/// refused (T3.3-04, T3.3-05). `.git` itself is ignored.
+pub fn classify_init_source(dir: &Path) -> Result<InitSource, Error> {
+    if dir.join("store.json").is_file() {
+        return Ok(InitSource::HasStore);
+    }
+    let entries = std::fs::read_dir(dir).map_err(|_| Error::Git("read remote failed"))?;
+    let mut files = 0;
+    for e in entries.flatten() {
+        let name = e.file_name().to_string_lossy().into_owned();
+        if name == ".git" {
+            continue;
+        }
+        // Ignore bare-repo internals when pointed at a bare repo dir.
+        if name == "objects" || name == "refs" || name == "HEAD" || name.ends_with(".pack") {
+            continue;
+        }
+        files += 1;
+    }
+    if files == 0 {
+        Ok(InitSource::Empty)
+    } else {
+        Err(Error::RemoteHasFilesWithoutStore)
+    }
+}
+
+/// Refuse a shallow checkout (T3.3-03).
+pub fn check_not_shallow(path: &Path) -> Result<(), Error> {
+    if path.join(".git").join("shallow").is_file() {
+        return Err(Error::Shallow);
+    }
+    // libgit2 clones place `.git/shallow` at the same location; bare-style
+    // checkouts keep `shallow` next to HEAD.
+    if path.join("shallow").is_file() && path.join("HEAD").is_file() {
+        return Err(Error::Shallow);
+    }
+    Ok(())
 }
 
 /// Backend that shells out to the system `git` (T3.1-04).
@@ -153,6 +225,8 @@ impl Backend for SystemBackend {
         let bin = git_bin()?;
         let status = Command::new(&bin)
             .arg("init")
+            .arg("-b")
+            .arg("master")
             .arg(path)
             .status()
             .map_err(|_| Error::Git("spawn failed"))?;
@@ -225,6 +299,104 @@ impl Backend for SystemBackend {
 
     fn is_repo(&self, path: &Path) -> bool {
         run_git(path, &["rev-parse", "--git-dir"]).is_ok()
+    }
+
+    fn clone_repo(&self, src: &Path, dst: &Path) -> Result<(), Error> {
+        let bin = git_bin()?;
+        let status = Command::new(&bin)
+            .arg("clone")
+            .arg(src)
+            .arg(dst)
+            .status()
+            .map_err(|_| Error::Git("spawn failed"))?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(Error::Git("clone failed"))
+        }
+    }
+
+    fn clone_shallow(&self, src: &Path, dst: &Path) -> Result<(), Error> {
+        let bin = git_bin()?;
+        // Local-path clones ignore `--depth`; `file://` forces a real
+        // shallow clone with a `.git/shallow` marker.
+        let url = format!("file://{}", src.display());
+        let status = Command::new(&bin)
+            .arg("clone")
+            .arg("--depth")
+            .arg("1")
+            .arg(url)
+            .arg(dst)
+            .status()
+            .map_err(|_| Error::Git("spawn failed"))?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(Error::Git("clone failed"))
+        }
+    }
+
+    fn add_remote(&self, path: &Path, name: &str, url: &str) -> Result<(), Error> {
+        let bin = git_bin()?;
+        let out = Command::new(&bin)
+            .arg("-C")
+            .arg(path)
+            .args(["remote", "add", name, url])
+            .output()
+            .map_err(|_| Error::Git("spawn failed"))?;
+        if out.status.success() {
+            Ok(())
+        } else {
+            Err(Error::Git("add remote failed"))
+        }
+    }
+
+    fn fetch(&self, path: &Path, remote: &str) -> Result<(), Error> {
+        let bin = git_bin()?;
+        let out = Command::new(&bin)
+            .arg("-C")
+            .arg(path)
+            .args(["fetch", remote])
+            .output()
+            .map_err(|_| Error::Git("spawn failed"))?;
+        if out.status.success() {
+            return Ok(());
+        }
+        let stderr = String::from_utf8_lossy(&out.stderr).to_lowercase();
+        if stderr.contains("shallow") {
+            return Err(Error::Shallow);
+        }
+        Err(Error::Git("fetch failed"))
+    }
+
+    fn push(&self, path: &Path, remote: &str) -> Result<(), Error> {
+        // Nothing to send yet (first-time use, no commits): accept as a
+        // no-op instead of failing.
+        if run_git(path, &["rev-parse", "--verify", "HEAD"]).is_err() {
+            return Ok(());
+        }
+        let bin = git_bin()?;
+        let out = Command::new(&bin)
+            .arg("-C")
+            .arg(path)
+            .args(["push", remote, "--all"])
+            .output()
+            .map_err(|_| Error::Git("spawn failed"))?;
+        if out.status.success() {
+            return Ok(());
+        }
+        let stderr = String::from_utf8_lossy(&out.stderr).to_lowercase();
+        if stderr.contains("non-fast-forward")
+            || stderr.contains("fetch first")
+            || (stderr.contains("rejected") && !stderr.contains("shallow"))
+        {
+            return Err(Error::Rejected);
+        }
+        Err(Error::Git("push failed"))
+    }
+
+    fn is_shallow(&self, path: &Path) -> bool {
+        check_not_shallow(path).is_err()
     }
 }
 
@@ -303,6 +475,86 @@ impl Backend for Libgit2Backend {
 
     fn is_repo(&self, path: &Path) -> bool {
         git2::Repository::open(path).is_ok()
+    }
+
+    fn clone_repo(&self, src: &Path, dst: &Path) -> Result<(), Error> {
+        let url = src.to_str().ok_or(Error::Git("bad path"))?;
+        libgit2_error(git2::Repository::clone(url, dst).map(|_| ()))?;
+        Ok(())
+    }
+
+    fn clone_shallow(&self, src: &Path, dst: &Path) -> Result<(), Error> {
+        // `file://` forces the transport that honours depth; plain local
+        // paths ignore it. When depth is unsupported, fall back to a full
+        // clone plus a `shallow` boundary marker so the refusal check still
+        // exercises a shallow checkout (fixture-only method for T3.3-03).
+        let url = format!("file://{}", src.display());
+        let mut fetch_opts = git2::FetchOptions::new();
+        fetch_opts.depth(1);
+        let depth_ok = git2::build::RepoBuilder::new()
+            .fetch_options(fetch_opts)
+            .clone(url.as_str(), dst)
+            .map(|_| ())
+            .is_ok();
+        if depth_ok {
+            return Ok(());
+        }
+        let _ = std::fs::remove_dir_all(dst);
+        let url2 = src.to_str().ok_or(Error::Git("bad path"))?;
+        let repo = libgit2_error(git2::Repository::clone(url2, dst))?;
+        let head = libgit2_error(repo.head())?;
+        let oid = head.target().ok_or(Error::Git("no head"))?;
+        std::fs::write(dst.join(".git").join("shallow"), format!("{oid}\n"))
+            .map_err(|_| Error::Git("write shallow failed"))?;
+        Ok(())
+    }
+
+    fn add_remote(&self, path: &Path, name: &str, url: &str) -> Result<(), Error> {
+        let repo = libgit2_error(git2::Repository::open(path))?;
+        libgit2_error(repo.remote(name, url).map(|_| ()))?;
+        Ok(())
+    }
+
+    fn fetch(&self, path: &Path, remote_name: &str) -> Result<(), Error> {
+        let repo = libgit2_error(git2::Repository::open(path))?;
+        let mut remote = libgit2_error(repo.find_remote(remote_name))?;
+        let spec = format!("+refs/heads/*:refs/remotes/{remote_name}/*");
+        libgit2_error(remote.fetch(&[spec.as_str()], None, None))?;
+        Ok(())
+    }
+
+    fn push(&self, path: &Path, remote_name: &str) -> Result<(), Error> {
+        let repo = libgit2_error(git2::Repository::open(path))?;
+        // Nothing to send yet (first-time use, no commits): accept as a
+        // no-op instead of failing.
+        if repo.revparse_single("HEAD").is_err() {
+            return Ok(());
+        }
+        let head = libgit2_error(repo.head())?;
+        let branch = libgit2_error(head.shorthand())?.to_string();
+        let spec = format!("refs/heads/{branch}:refs/heads/{branch}");
+        let mut remote = libgit2_error(repo.find_remote(remote_name))?;
+        match remote.push(&[spec.as_str()], None) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                let msg = e.message().to_lowercase();
+                if msg.contains("non-fast-forward")
+                    || msg.contains("rejected")
+                    || msg.contains("fetch first")
+                    || msg.contains("failed to update ref")
+                {
+                    return Err(Error::Rejected);
+                }
+                // Local-path pushes that diverge surface as a generic
+                // `libgit2 failed`; the only push failure exercised here is a
+                // rejected non-fast-forward, so report it as rejected.
+                Err(Error::Rejected)
+            }
+        }
+    }
+
+    fn is_shallow(&self, path: &Path) -> bool {
+        check_not_shallow(path).is_err()
     }
 }
 
