@@ -47,7 +47,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T3.1 | Local git operations (system git or libgit2) | T2.4 | GREEN | |
 | T3.2 | Remote URLs, credentials, host keys | T3.1 | GREEN | |
 | T3.3 | Fetch and push, refusal checks | T3.2 | GREEN | |
-| T3.4 | Network error policy | T3.3 | TODO | |
+| T3.4 | Network error policy | T3.3 | GREEN | |
 | T3.5 | libgit2 for iOS spike | T3.4 | TODO | |
 | T4.1 | Device list model and devices.sig | T3.5 | TODO | |
 | T4.2 | Chain verification | T4.1 | TODO | |
@@ -404,11 +404,11 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** a network failure retries up to 3 times and then returns a decision request to the caller. Retry is in the core; the asking is in the UI or CLI.
 - **Spec:** 04 section 4.8; 08 test 20.
 - **Tests:**
-  - [ ] T3.4-01 A simulated unreachable host is retried exactly 3 times, then `RemoteUnreachable` is returned with `shouldAsk`.
-  - [ ] T3.4-02 A success on attempt 2 stops retrying.
-  - [ ] T3.4-03 Backoff delays are injected, so tests do not sleep.
-  - [ ] T3.4-04 An auth failure is `RemoteRejected` and is not retried.
-  - [ ] T3.4-05 Retry count is the same for fetch and push.
+  - [x] T3.4-01 A simulated unreachable host is retried exactly 3 times, then `RemoteUnreachable` is returned with `shouldAsk`.
+  - [x] T3.4-02 A success on attempt 2 stops retrying.
+  - [x] T3.4-03 Backoff delays are injected, so tests do not sleep.
+  - [x] T3.4-04 An auth failure is `RemoteRejected` and is not retried.
+  - [x] T3.4-05 Retry count is the same for fetch and push.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T3.4 network error policy`
 

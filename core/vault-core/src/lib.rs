@@ -6,6 +6,7 @@ pub mod entry;
 pub mod envelope;
 pub mod git;
 pub mod identity;
+pub mod net_retry;
 pub mod remote;
 pub mod secrets;
 pub mod secure_storage;
