@@ -41,7 +41,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.9 | Store layout and store.json | T1.8 | GREEN | |
 | T1.10 | Data folder and permissions | T1.9 | GREEN | |
 | T2.1 | device.key: create and open | T1.10 | GREEN | |
-| T2.2 | Session and lax-time policy | T2.1 | TODO | |
+| T2.2 | Session and lax-time policy | T2.1 | GREEN | |
 | T2.3 | Master password change | T2.2 | TODO | |
 | T2.4 | SecureStorage interface | T2.3 | TODO | |
 | T3.1 | Local git operations (system git or libgit2) | T2.4 | TODO | |
@@ -318,14 +318,14 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** an unlocked session holding the keys. Two lax-time policies: `FromUnlock` (CLI) and `FromInteraction` (apps). `lax-time` 0 means no cached session.
 - **Spec:** 05 (lax time, CLI and apps); 02 (unlock lifecycle).
 - **Tests:**
-  - [ ] T2.2-01 With `FromUnlock` and 45 s, the session is valid at 44.999 s and expired at 45.000 s.
-  - [ ] T2.2-02 With `FromInteraction`, an interaction at 30 s extends the session to 75 s.
-  - [ ] T2.2-03 An interaction does not extend a `FromUnlock` session.
-  - [ ] T2.2-04 `lax-time` 0 makes every operation that needs the key require a password (session never valid).
-  - [ ] T2.2-05 `lock()` zeroises the keys and the search index handle; a later use fails with `Locked`.
-  - [ ] T2.2-06 Expiry zeroises the keys (tested with the T1.5 hook).
-  - [ ] T2.2-07 Lax time accepts values between 0 and a maximum, and rejects negatives and non-numbers.
-  - [ ] T2.2-08 Time is injected, so tests do not sleep.
+  - [x] T2.2-01 With `FromUnlock` and 45 s, the session is valid at 44.999 s and expired at 45.000 s.
+  - [x] T2.2-02 With `FromInteraction`, an interaction at 30 s extends the session to 75 s.
+  - [x] T2.2-03 An interaction does not extend a `FromUnlock` session.
+  - [x] T2.2-04 `lax-time` 0 makes every operation that needs the key require a password (session never valid).
+  - [x] T2.2-05 `lock()` zeroises the keys and the search index handle; a later use fails with `Locked`.
+  - [x] T2.2-06 Expiry zeroises the keys (tested with the T1.5 hook).
+  - [x] T2.2-07 Lax time accepts values between 0 and a maximum, and rejects negatives and non-numbers.
+  - [x] T2.2-08 Time is injected, so tests do not sleep.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T2.2 session and lax-time policy`
 

@@ -27,6 +27,7 @@ Status: design complete for v1, no code yet. Spec version 0.2, 22 November 2026.
 6. MUST is required. SHOULD is a strong default; deviating needs a stated reason. MAY is optional.
 7. If a rule is ambiguous or missing, ask the owner. Do not choose a default and bury it in code.
 8. Build in the order of `docs/10-implementation-plan.md`. Do not start a task until every earlier task is green. A task is green only when its test cases pass and its green checks hold. Commit once per green task with the message `T<id>: <title>`, updating the tracker in the same commit. Do not skip a BLOCKED task; stop and report it.
+9. Tests use only the production API. Never add test-only methods, hooks, seams or backdoors to production code to make testing easier. Design the production API so tests exercise shipped code: genuine dependencies (clocks, RNGs, KDFs, storage) enter through constructor parameters, and anything unobservable from outside is verified by `#[cfg(test)]` unit tests, which never ship. Security is the most important criterion of this project; it outranks test convenience. Where `docs/10-implementation-plan.md` mandates a test-only hook, implement it as a `#[cfg(test)]` unit test instead and record the deviation in the commit.
 
 ## Security invariants (MUST hold everywhere)
 
