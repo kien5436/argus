@@ -51,8 +51,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T3.5 | libgit2 for iOS spike | T3.4 | GREEN | 330e23a |
 | T4.1 | Device list model and devices.sig | T3.5 | GREEN | 9195a51 |
 | T4.2 | Chain verification | T4.1 | GREEN | 3ad522f |
-| T4.3 | Pin, rollback and fork | T4.2 | GREEN | |
-| T4.4 | Recipient set and encrypt guard | T4.3 | TODO | |
+| T4.3 | Pin, rollback and fork | T4.2 | GREEN | feba8fe |
+| T4.4 | Recipient set and encrypt guard | T4.3 | GREEN | |
 | T5.1 | init | T4.4 | TODO | |
 | T5.2 | join request | T5.1 | TODO | |
 | T5.3 | approve | T5.2 | TODO | |
@@ -483,10 +483,10 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** entries are encrypted only to the recipients of the newest verified list; encryption refuses when the list is not verified.
 - **Spec:** 02 invariants; 03 section 3.5 (rule 7); 08 test 9.
 - **Tests:**
-  - [ ] T4.4-01 The recipient set equals the newest verified list.
-  - [ ] T4.4-02 Encrypting with an unverified list fails with `VerificationFailed`.
-  - [ ] T4.4-03 A device removed in a newer version is not a recipient of new entries.
-  - [ ] T4.4-04 An entry signed by a device not in the current list is refused with a security alert and is not marked damaged (03 section 3.4).
+  - [x] T4.4-01 The recipient set equals the newest verified list.
+  - [x] T4.4-02 Encrypting with an unverified list fails with `VerificationFailed`.
+  - [x] T4.4-03 A device removed in a newer version is not a recipient of new entries.
+  - [x] T4.4-04 An entry signed by a device not in the current list is refused with a security alert and is not marked damaged (03 section 3.4).
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T4.4 recipient set and encrypt guard`
 
