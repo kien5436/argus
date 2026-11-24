@@ -54,8 +54,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T4.3 | Pin, rollback and fork | T4.2 | GREEN | feba8fe |
 | T4.4 | Recipient set and encrypt guard | T4.3 | GREEN | c4eb811 |
 | T5.1 | init | T4.4 | GREEN | de8d553 |
-| T5.2 | join request | T5.1 | GREEN | |
-| T5.3 | approve | T5.2 | TODO | |
+| T5.2 | join request | T5.1 | GREEN | dcb23f4 |
+| T5.3 | approve | T5.2 | GREEN | |
 | T5.4 | verify anchor | T5.3 | TODO | |
 | T5.5 | reconcile | T5.4 | TODO | |
 | T5.6 | concurrent device-list changes | T5.5 | TODO | |
@@ -524,17 +524,17 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** a trusted device lists valid pending requests, requires fingerprint confirmation, adds the device to a new signed list, adds the new recipient to every entry, commits once, pushes, and shows the anchor.
 - **Spec:** 04 section 4.3; T1.6 sealed-recipient addition.
 - **Tests:**
-  - [ ] T5.3-01 Listing returns only requests with a valid self-signature for the same store id.
-  - [ ] T5.3-02 Approve without a confirmed fingerprint is refused.
-  - [ ] T5.3-03 Approve with a mismatched fingerprint is refused.
-  - [ ] T5.3-04 The new list is version n+1, `prev` equals the hash of version n, `addedBy` equals this device.
-  - [ ] T5.3-05 After approval, every entry is decryptable by the new device's key.
-  - [ ] T5.3-06 Pending file is removed in the same commit.
-  - [ ] T5.3-07 A rejected push triggers pull, verify and redo from the list step; lists are never merged.
-  - [ ] T5.3-08 The anchor shown equals the one the new device will compute.
-  - [ ] T5.3-09 Adding a recipient appends a sealed key; the payload and file key are unchanged (checked by comparing bytes before and after).
-  - [ ] T5.3-10 Approving a device already in the list is refused.
-  - [ ] T5.3-11 The approve commit's message is `update`.
+  - [x] T5.3-01 Listing returns only requests with a valid self-signature for the same store id.
+  - [x] T5.3-02 Approve without a confirmed fingerprint is refused.
+  - [x] T5.3-03 Approve with a mismatched fingerprint is refused.
+  - [x] T5.3-04 The new list is version n+1, `prev` equals the hash of version n, `addedBy` equals this device.
+  - [x] T5.3-05 After approval, every entry is decryptable by the new device's key.
+  - [x] T5.3-06 Pending file is removed in the same commit.
+  - [x] T5.3-07 A rejected push triggers pull, verify and redo from the list step; lists are never merged.
+  - [x] T5.3-08 The anchor shown equals the one the new device will compute.
+  - [x] T5.3-09 Adding a recipient appends a sealed key; the payload and file key are unchanged (checked by comparing bytes before and after).
+  - [x] T5.3-10 Approving a device already in the list is refused.
+  - [x] T5.3-11 The approve commit's message is `update`.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T5.3 approve device`
 

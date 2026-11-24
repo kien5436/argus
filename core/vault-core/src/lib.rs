@@ -1,3 +1,4 @@
+pub mod approve;
 pub mod canonical_json;
 pub mod data_dir;
 pub mod device_key;
