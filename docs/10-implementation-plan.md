@@ -49,7 +49,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T3.3 | Fetch and push, refusal checks | T3.2 | GREEN | |
 | T3.4 | Network error policy | T3.3 | GREEN | |
 | T3.5 | libgit2 for iOS spike | T3.4 | GREEN | |
-| T4.1 | Device list model and devices.sig | T3.5 | TODO | |
+| T4.1 | Device list model and devices.sig | T3.5 | GREEN | |
 | T4.2 | Chain verification | T4.1 | TODO | |
 | T4.3 | Pin, rollback and fork | T4.2 | TODO | |
 | T4.4 | Recipient set and encrypt guard | T4.3 | TODO | |
@@ -430,12 +430,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** the device list type, canonical serialisation, and the `devices.sig` file.
 - **Spec:** 03 section 3.5.
 - **Tests:**
-  - [ ] T4.1-01 A device list serialises to canonical JSON with the fields in 03 section 3.5.
-  - [ ] T4.1-02 `devices.sig` is `{"signer","sig"}` and parses.
-  - [ ] T4.1-03 Adding a device changes `version` only when the caller bumps it (no silent bumps).
-  - [ ] T4.1-04 A device entry missing `addedBy` is rejected.
-  - [ ] T4.1-05 A device name with control characters is rejected.
-  - [ ] T4.1-06 `gitKey` is optional.
+  - [x] T4.1-01 A device list serialises to canonical JSON with the fields in 03 section 3.5.
+  - [x] T4.1-02 `devices.sig` is `{"signer","sig"}` and parses.
+  - [x] T4.1-03 Adding a device changes `version` only when the caller bumps it (no silent bumps).
+  - [x] T4.1-04 A device entry missing `addedBy` is rejected.
+  - [x] T4.1-05 A device name with control characters is rejected.
+  - [x] T4.1-06 `gitKey` is optional.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T4.1 device list model and devices.sig`
 
