@@ -37,7 +37,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.5 | Secret types | T1.4 | GREEN | |
 | T1.6 | crypto envelope and sealed recipients | T1.5 | GREEN | |
 | T1.7 | Entry plaintext format | T1.6 | GREEN | |
-| T1.8 | Entry signature | T1.7 | TODO | |
+| T1.8 | Entry signature | T1.7 | GREEN | |
 | T1.9 | Store layout and store.json | T1.8 | TODO | |
 | T1.10 | Data folder and permissions | T1.9 | TODO | |
 | T2.1 | device.key: create and open | T1.10 | TODO | |
@@ -261,12 +261,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** sign the canonical entry without `sig` with the `argus-entry-v1` prefix; verify against the device list.
 - **Spec:** 03 section 3.4 (Entry signature).
 - **Tests:**
-  - [ ] T1.8-01 A signed entry verifies with the signer's key.
-  - [ ] T1.8-02 Changing any field after signing fails verification.
-  - [ ] T1.8-03 A signature from a key not in the supplied list fails.
-  - [ ] T1.8-04 The `sig.by` field names the signer; mismatch with the key found fails.
-  - [ ] T1.8-05 A signature made with the `devices` prefix does not verify as an entry.
-  - [ ] T1.8-06 A `sig` missing from the entry fails verification.
+  - [x] T1.8-01 A signed entry verifies with the signer's key.
+  - [x] T1.8-02 Changing any field after signing fails verification.
+  - [x] T1.8-03 A signature from a key not in the supplied list fails.
+  - [x] T1.8-04 The `sig.by` field names the signer; mismatch with the key found fails.
+  - [x] T1.8-05 A signature made with the `devices` prefix does not verify as an entry.
+  - [x] T1.8-06 A `sig` missing from the entry fails verification.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T1.8 entry signatures`
 

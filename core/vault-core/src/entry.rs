@@ -5,6 +5,9 @@
 //! Padding is trailing spaces to a multiple of 512 bytes; the JSON parser
 //! ignores it. Entries larger than 1 MiB are refused on write and on read.
 
+use crate::canonical_json;
+use crate::encodings::{b64u_decode, b64u_encode};
+use crate::signatures::{sign, verify as verify_sig, Domain, Signature, SigningKey, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::fmt;
@@ -266,8 +269,53 @@ impl Entry {
         }
     }
 
-    /// Serialise to padded plaintext (trailing spaces, multiple of 512).
-    pub fn encode(&self) -> Result<Vec<u8>, Error> {
+    /// Sign this entry as `device_id`, replacing any existing signature.
+    ///
+    /// Signs the canonical JSON of the entry without `sig` under the
+    /// `argus-entry-v1` domain (spec 03 section 3.4).
+    pub fn sign(&mut self, device_id: &str, key: &SigningKey) -> Result<(), Error> {
+        let canonical = self.canonical_unsigned()?;
+        let sig = sign(key, Domain::Entry, canonical.as_bytes());
+        self.sig = Some(Sig {
+            by: device_id.to_owned(),
+            sig: b64u_encode(&sig.to_bytes()),
+        });
+        Ok(())
+    }
+
+    /// Verify this entry's signature against the supplied device list.
+    ///
+    /// The `sig.by` device must be listed; its key must verify the canonical
+    /// unsigned bytes under the `argus-entry-v1` domain.
+    pub fn verify(&self, devices: &[(&str, &VerifyingKey)]) -> Result<(), Error> {
+        let sig = self.sig.as_ref().ok_or(Error::Invalid("sig"))?;
+        let (_, key) = devices
+            .iter()
+            .find(|(id, _)| *id == sig.by)
+            .ok_or(Error::Invalid("signer"))?;
+        let raw = b64u_decode(&sig.sig).map_err(|_| Error::Invalid("sig"))?;
+        let bytes: [u8; 64] = raw.try_into().map_err(|_| Error::Invalid("sig"))?;
+        let canonical = self
+            .canonical_unsigned()
+            .map_err(|_| Error::Invalid("signature"))?;
+        verify_sig(
+            key,
+            Domain::Entry,
+            canonical.as_bytes(),
+            &Signature::from_bytes(&bytes),
+        )
+        .map_err(|_| Error::Invalid("signature"))
+    }
+
+    /// Canonical JSON of this entry without `sig`, for hashing and signing.
+    fn canonical_unsigned(&self) -> Result<String, Error> {
+        let value = self.unsigned_value()?;
+        let json = serde_json::to_string(&value).map_err(|_| Error::Invalid("schema"))?;
+        canonical_json::canonicalize(&json).map_err(|_| Error::Invalid("schema"))
+    }
+
+    /// The entry as a JSON object without `sig`.
+    fn unsigned_value(&self) -> Result<Map<String, Value>, Error> {
         let mut value = Map::new();
         value.insert("v".to_owned(), Value::from(1));
         value.insert("id".to_owned(), Value::from(self.id.clone()));
@@ -282,12 +330,6 @@ impl Entry {
         value.insert("created".to_owned(), Value::from(self.created.clone()));
         value.insert("updated".to_owned(), Value::from(self.updated.clone()));
         value.insert("data".to_owned(), data);
-        if let Some(sig) = &self.sig {
-            value.insert(
-                "sig".to_owned(),
-                serde_json::to_value(sig).map_err(|_| Error::Invalid("schema"))?,
-            );
-        }
         if let Some(conflict_of) = &self.conflict_of {
             value.insert("conflictOf".to_owned(), Value::from(conflict_of.clone()));
         }
@@ -296,6 +338,18 @@ impl Entry {
         }
         for (k, v) in &self.extra {
             value.insert(k.clone(), v.clone());
+        }
+        Ok(value)
+    }
+
+    /// Serialise to padded plaintext (trailing spaces, multiple of 512).
+    pub fn encode(&self) -> Result<Vec<u8>, Error> {
+        let mut value = self.unsigned_value()?;
+        if let Some(sig) = &self.sig {
+            value.insert(
+                "sig".to_owned(),
+                serde_json::to_value(sig).map_err(|_| Error::Invalid("schema"))?,
+            );
         }
         let mut bytes = serde_json::to_vec(&value).map_err(|_| Error::Invalid("schema"))?;
         if bytes.len() > MAX_BYTES {
