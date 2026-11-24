@@ -48,7 +48,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T3.2 | Remote URLs, credentials, host keys | T3.1 | GREEN | |
 | T3.3 | Fetch and push, refusal checks | T3.2 | GREEN | |
 | T3.4 | Network error policy | T3.3 | GREEN | |
-| T3.5 | libgit2 for iOS spike | T3.4 | TODO | |
+| T3.5 | libgit2 for iOS spike | T3.4 | GREEN | |
 | T4.1 | Device list model and devices.sig | T3.5 | TODO | |
 | T4.2 | Chain verification | T4.1 | TODO | |
 | T4.3 | Pin, rollback and fork | T4.2 | TODO | |
