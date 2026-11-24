@@ -45,7 +45,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T2.3 | Master password change | T2.2 | GREEN | fd1da85 |
 | T2.4 | SecureStorage interface | T2.3 | GREEN | 006f680 |
 | T3.1 | Local git operations (system git or libgit2) | T2.4 | GREEN | |
-| T3.2 | Remote URLs, credentials, host keys | T3.1 | TODO | |
+| T3.2 | Remote URLs, credentials, host keys | T3.1 | GREEN | |
 | T3.3 | Fetch and push, refusal checks | T3.2 | TODO | |
 | T3.4 | Network error policy | T3.3 | TODO | |
 | T3.5 | libgit2 for iOS spike | T3.4 | TODO | |
@@ -377,13 +377,13 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** accept scp-like SSH, `ssh://`, and `https://` remotes; store credentials through SecureStorage; verify SSH host keys.
 - **Spec:** 04 (remote); 01 (credentials in the Keychain; SSH host keys checked through `~/.ssh/known_hosts`, as `pass` does).
 - **Tests:**
-  - [ ] T3.2-01 `git@host:owner/repo.git`, `ssh://git@host/owner/repo.git` and `https://host/owner/repo.git` parse.
-  - [ ] T3.2-02 A URL with embedded credentials (`https://user:token@host`) is refused.
-  - [ ] T3.2-03 A `file://` remote is accepted for tests only.
-  - [ ] T3.2-04 An unknown SSH host key is never accepted silently (01 architecture).
-  - [ ] T3.2-05 SSH to a host whose key changed fails.
-  - [ ] T3.2-06 Credentials are read from SecureStorage and never printed.
-  - [ ] T3.2-07 An HTTPS token is sent as a header, not in the URL (checked with a local test server).
+  - [x] T3.2-01 `git@host:owner/repo.git`, `ssh://git@host/owner/repo.git` and `https://host/owner/repo.git` parse.
+  - [x] T3.2-02 A URL with embedded credentials (`https://user:token@host`) is refused.
+  - [x] T3.2-03 `file://` is refused (dropped per owner decision 2026-11-24: spec 01 allows SSH/HTTPS only; tests use temp dirs through the git backend).
+  - [x] T3.2-04 An unknown SSH host key is never accepted silently (01 architecture).
+  - [x] T3.2-05 SSH to a host whose key changed fails.
+  - [x] T3.2-06 Credentials are read from SecureStorage and never printed.
+  - [x] T3.2-07 An HTTPS token is sent as a header, not in the URL (checked with a local test server).
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T3.2 remote URLs, credentials, host keys`
 
