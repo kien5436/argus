@@ -35,7 +35,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.3 | Domain-separated signatures (dryoc backend) | T1.2 | GREEN | |
 | T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | |
 | T1.5 | Secret types | T1.4 | GREEN | |
-| T1.6 | crypto envelope and sealed recipients | T1.5 | TODO | |
+| T1.6 | crypto envelope and sealed recipients | T1.5 | GREEN | |
 | T1.7 | Entry plaintext format | T1.6 | TODO | |
 | T1.8 | Entry signature | T1.7 | TODO | |
 | T1.9 | Store layout and store.json | T1.8 | TODO | |
@@ -222,18 +222,18 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** implement the entry envelope (03 section 3.4) with dryoc: XSalsa20-Poly1305 `secretbox` under a random file key, the file key sealed to each recipient with `crypto_box_seal`. Adding a recipient appends a sealed key without touching the payload.
 - **Spec:** 03 sections 3.2 and 3.4; 04 section 4.3; 08 test 6.
 - **Tests:**
-  - [ ] T1.6-01 Encrypt then decrypt with one recipient returns the same bytes.
-  - [ ] T1.6-02 Encrypt to two recipients; either identity decrypts.
-  - [ ] T1.6-03 Decrypt with an identity not in the recipient set fails.
-  - [ ] T1.6-04 A flipped byte in the magic, version, `plen` or `rcount` fails.
-  - [ ] T1.6-05 A flipped byte in the payload fails authentication.
-  - [ ] T1.6-06 Empty plaintext round-trips.
-  - [ ] T1.6-07 A 1 MiB plaintext round-trips.
-  - [ ] T1.6-08 Truncated ciphertext fails.
-  - [ ] T1.6-09 `plen` is a multiple of 512 and at most 1,048,576; otherwise the entry is damaged.
-  - [ ] T1.6-10 Adding a recipient by appending a sealed key: the new device decrypts, and the original recipients still decrypt (nonce, `plen`, payload and file key unchanged).
-  - [ ] T1.6-11 `rcount` equals the number of sealed keys; a mismatch marks the entry damaged (T6.4).
-  - [ ] T1.6-12 Cross-check: a file written by dryoc decrypts through the C libsodium in CI, and vice versa (required once T0.2 runs it).
+  - [x] T1.6-01 Encrypt then decrypt with one recipient returns the same bytes.
+  - [x] T1.6-02 Encrypt to two recipients; either identity decrypts.
+  - [x] T1.6-03 Decrypt with an identity not in the recipient set fails.
+  - [x] T1.6-04 A flipped byte in the magic, version, `plen` or `rcount` fails.
+  - [x] T1.6-05 A flipped byte in the payload fails authentication.
+  - [x] T1.6-06 Empty plaintext round-trips.
+  - [x] T1.6-07 A 1 MiB plaintext round-trips.
+  - [x] T1.6-08 Truncated ciphertext fails.
+  - [x] T1.6-09 `plen` is a multiple of 512 and at most 1,048,576; otherwise the entry is damaged.
+  - [x] T1.6-10 Adding a recipient by appending a sealed key: the new device decrypts, and the original recipients still decrypt (nonce, `plen`, payload and file key unchanged).
+  - [x] T1.6-11 `rcount` equals the number of sealed keys; a mismatch marks the entry damaged (T6.4).
+  - [x] T1.6-12 Cross-check: a file written by dryoc decrypts through the C libsodium in CI, and vice versa (required once T0.2 runs it).
 - **Green when:** G1 to G3, G6, and T1.6-12 passes in CI.
 - **Commit:** `feat: T1.6 crypto envelope and sealed recipients`
 

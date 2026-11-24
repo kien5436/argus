@@ -17,3 +17,4 @@ zeroize = "1.9.2"
 
 [dev-dependencies]
 trybuild = "1.0.125"
+libsodium-sys-stable = "1.24.6"
