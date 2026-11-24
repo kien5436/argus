@@ -146,6 +146,122 @@ impl DeviceSig {
     }
 }
 
+/// One version in a `devices.json` history: the raw file bytes plus the
+/// raw `devices.sig` bytes. File bytes must already be canonical JSON.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ChainEntry {
+    pub list_bytes: String,
+    pub sig_bytes: String,
+}
+
+/// Verify a `devices.json` history from version 1 to newest (spec 03 section 3.5).
+///
+/// Returns `(newest version, hash of newest file bytes)`.
+pub fn verify_chain(
+    chain: &[ChainEntry],
+    pinned_store_id: &str,
+    shallow: bool,
+) -> Result<(u64, String), Error> {
+    if shallow {
+        return Err(Error::Invalid("shallow"));
+    }
+    if chain.is_empty() {
+        return Err(Error::Invalid("emptyList"));
+    }
+    let mut prev_list: Option<DeviceList> = None;
+    let mut prev_hash = String::new();
+    for (i, entry) in chain.iter().enumerate() {
+        let canonical = canonical_json::canonicalize(&entry.list_bytes)
+            .map_err(|_| Error::Invalid("notCanonical"))?;
+        if canonical != entry.list_bytes {
+            return Err(Error::Invalid("notCanonical"));
+        }
+        let list = parse_device_list(&entry.list_bytes).map_err(|e| match e {
+            Error::Invalid("v") => Error::Invalid("unsupported"),
+            Error::Invalid("devices") => Error::Invalid("emptyList"),
+            other => other,
+        })?;
+        if list.devices.is_empty() {
+            return Err(Error::Invalid("emptyList"));
+        }
+        if list.store_id != pinned_store_id {
+            return Err(Error::Invalid("storeId"));
+        }
+        let sig = parse_device_sig(&entry.sig_bytes).map_err(|e| match e {
+            Error::Invalid("v") => Error::Invalid("unsupported"),
+            other => other,
+        })?;
+        if prev_list.is_none() {
+            if list.version != 1 {
+                return Err(Error::Invalid("versionOrder"));
+            }
+            if !list.prev.is_empty() {
+                return Err(Error::Invalid("prev"));
+            }
+            if list.devices.len() != 1 {
+                return Err(Error::Invalid("v1Devices"));
+            }
+            let only = &list.devices[0];
+            if only.added_by != only.id {
+                return Err(Error::Invalid("addedBy"));
+            }
+            if sig.signer != only.id {
+                return Err(Error::BadSignature);
+            }
+            let key = verifying_key_of(only)?;
+            list.verify(&sig, &key).map_err(|_| Error::BadSignature)?;
+        } else if let Some(prev) = prev_list.as_ref() {
+            if list.version != prev.version + 1 {
+                return Err(Error::Invalid("versionOrder"));
+            }
+            if list.prev != prev_hash {
+                return Err(Error::Invalid("prev"));
+            }
+            let prev_ids: std::collections::HashSet<&str> =
+                prev.devices.iter().map(|d| d.id.as_str()).collect();
+            let signer_is_new = list.devices.iter().any(|d| d.id == sig.signer)
+                && !prev_ids.contains(sig.signer.as_str());
+            if signer_is_new {
+                let self_added = list
+                    .devices
+                    .iter()
+                    .find(|d| d.id == sig.signer)
+                    .map(|d| d.added_by == sig.signer)
+                    .unwrap_or(false);
+                if self_added {
+                    return Err(Error::Invalid("selfAdded"));
+                }
+                return Err(Error::Invalid("signerNotInPrevious"));
+            }
+            let prev_entry = prev.devices.iter().find(|d| d.id == sig.signer);
+            let signer_prev = match prev_entry {
+                None => return Err(Error::Invalid("signerNotInPrevious")),
+                Some(d) => d,
+            };
+            let key = verifying_key_of(signer_prev)?;
+            list.verify(&sig, &key).map_err(|_| Error::BadSignature)?;
+            for d in &list.devices {
+                if !prev_ids.contains(d.id.as_str()) && d.added_by != sig.signer {
+                    return Err(Error::Invalid("addedBy"));
+                }
+            }
+            // A signer listed in the previous version but missing here signed
+            // its own removal; still valid (revoke path owns the alert).
+        }
+        prev_hash = list.hash_hex()?;
+        prev_list = Some(list);
+        let _ = i;
+    }
+    let newest = prev_list.unwrap();
+    Ok((newest.version, prev_hash))
+}
+
+fn verifying_key_of(device: &DeviceEntry) -> Result<VerifyingKey, Error> {
+    let raw = b64u_decode(&device.sign).map_err(|_| Error::Invalid("sign"))?;
+    let bytes: [u8; 32] = raw.try_into().map_err(|_| Error::Invalid("sign"))?;
+    VerifyingKey::from_bytes(&bytes).map_err(|_| Error::Invalid("sign"))
+}
+
 /// Parse and validate `devices.json` bytes.
 pub fn parse_device_list(input: &str) -> Result<DeviceList, Error> {
     let value: Value = serde_json::from_str(input).map_err(|_| Error::Invalid("schema"))?;

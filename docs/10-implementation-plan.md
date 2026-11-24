@@ -44,13 +44,13 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T2.2 | Session and lax-time policy | T2.1 | GREEN | 5510d55 |
 | T2.3 | Master password change | T2.2 | GREEN | fd1da85 |
 | T2.4 | SecureStorage interface | T2.3 | GREEN | 006f680 |
-| T3.1 | Local git operations (system git or libgit2) | T2.4 | GREEN | |
-| T3.2 | Remote URLs, credentials, host keys | T3.1 | GREEN | |
-| T3.3 | Fetch and push, refusal checks | T3.2 | GREEN | |
-| T3.4 | Network error policy | T3.3 | GREEN | |
-| T3.5 | libgit2 for iOS spike | T3.4 | GREEN | |
-| T4.1 | Device list model and devices.sig | T3.5 | GREEN | |
-| T4.2 | Chain verification | T4.1 | TODO | |
+| T3.1 | Local git operations (system git or libgit2) | T2.4 | GREEN | 14cba20 |
+| T3.2 | Remote URLs, credentials, host keys | T3.1 | GREEN | e503c4f |
+| T3.3 | Fetch and push, refusal checks | T3.2 | GREEN | cd63cf7 |
+| T3.4 | Network error policy | T3.3 | GREEN | 5f46427 |
+| T3.5 | libgit2 for iOS spike | T3.4 | GREEN | 330e23a |
+| T4.1 | Device list model and devices.sig | T3.5 | GREEN | 9195a51 |
+| T4.2 | Chain verification | T4.1 | GREEN | |
 | T4.3 | Pin, rollback and fork | T4.2 | TODO | |
 | T4.4 | Recipient set and encrypt guard | T4.3 | TODO | |
 | T5.1 | init | T4.4 | TODO | |
@@ -443,24 +443,24 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** verify every rule in 03 section 3.5 (Verification) over a chain of versions.
 - **Spec:** 03 section 3.5 (rules 1 to 7); 08 test 3.
 - **Tests:**
-  - [ ] T4.2-01 Valid chain of versions 1, 2 and 3 verifies; returns version 3 and its hash.
-  - [ ] T4.2-02 Version 1 with `prev` not empty fails.
-  - [ ] T4.2-03 Version 1 with two devices fails.
-  - [ ] T4.2-04 Version 1 with `addedBy` not equal to itself fails.
-  - [ ] T4.2-05 Version 1 signed by another key fails.
-  - [ ] T4.2-06 Version n+1 with wrong `prev` fails with `prev`.
-  - [ ] T4.2-07 Version n+1 signed by a device not in version n fails with `signerNotInPrevious`.
-  - [ ] T4.2-08 A new device with `addedBy` not equal to the signer fails.
-  - [ ] T4.2-09 A device adding itself fails with `selfAdded`.
-  - [ ] T4.2-10 A bad signature fails with `badSignature`.
-  - [ ] T4.2-11 An empty device list fails with `emptyList`.
-  - [ ] T4.2-12 `v` not equal to 1 fails with `unsupported`.
-  - [ ] T4.2-13 A `version` out of sequence fails with `versionOrder`.
-  - [ ] T4.2-14 A file that is not canonical JSON fails with `notCanonical`.
-  - [ ] T4.2-15 `storeId` different from the pinned store id fails.
-  - [ ] T4.2-16 A removed device cannot sign the next version.
-  - [ ] T4.2-17 A shallow history is refused.
-  - [ ] T4.2-18 Every case in `core/vault-core/tests/vectors/` gives its expected result.
+  - [x] T4.2-01 Valid chain of versions 1, 2 and 3 verifies; returns version 3 and its hash.
+  - [x] T4.2-02 Version 1 with `prev` not empty fails.
+  - [x] T4.2-03 Version 1 with two devices fails.
+  - [x] T4.2-04 Version 1 with `addedBy` not equal to itself fails.
+  - [x] T4.2-05 Version 1 signed by another key fails.
+  - [x] T4.2-06 Version n+1 with wrong `prev` fails with `prev`.
+  - [x] T4.2-07 Version n+1 signed by a device not in version n fails with `signerNotInPrevious`.
+  - [x] T4.2-08 A new device with `addedBy` not equal to the signer fails.
+  - [x] T4.2-09 A device adding itself fails with `selfAdded`.
+  - [x] T4.2-10 A bad signature fails with `badSignature`.
+  - [x] T4.2-11 An empty device list fails with `emptyList`.
+  - [x] T4.2-12 `v` not equal to 1 fails with `unsupported`.
+  - [x] T4.2-13 A `version` out of sequence fails with `versionOrder`.
+  - [x] T4.2-14 A file that is not canonical JSON fails with `notCanonical`.
+  - [x] T4.2-15 `storeId` different from the pinned store id fails.
+  - [x] T4.2-16 A removed device cannot sign the next version.
+  - [x] T4.2-17 A shallow history is refused.
+  - [x] T4.2-18 Every case in `core/vault-core/tests/vectors/` gives its expected result.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T4.2 device list chain verification`
 
