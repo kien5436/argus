@@ -33,6 +33,9 @@ impl Domain {
 }
 
 /// An Ed25519 signing key: the 32-byte seed. Zeroed on drop.
+///
+/// Build from a short-lived copy of the seed; zeroise the source copy after
+/// this call. Never keep raw seed material in a long-lived structure.
 pub struct SigningKey([u8; 32]);
 
 impl SigningKey {

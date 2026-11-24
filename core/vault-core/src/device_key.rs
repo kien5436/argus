@@ -10,7 +10,7 @@ use dryoc::classic::crypto_secretbox::{crypto_secretbox_easy, crypto_secretbox_o
 use dryoc::constants::{CRYPTO_PWHASH_SALTBYTES, CRYPTO_SECRETBOX_MACBYTES};
 use dryoc::keypair::{PublicKey, SecretKey};
 use dryoc::types::{ByteArray, MutByteArray, NewByteArray};
-use rand::Rng;
+use rand::CryptoRng;
 use unicode_normalization::UnicodeNormalization;
 use zeroize::{Zeroize, Zeroizing};
 
@@ -107,13 +107,13 @@ pub struct DeviceKeys {
 }
 
 /// NFC-normalized password bytes; empty is refused.
-fn normalized(password: &MasterPassword) -> Result<Vec<u8>, Error> {
+fn normalized(password: &MasterPassword) -> Result<Zeroizing<Vec<u8>>, Error> {
     let s = std::str::from_utf8(password.expose()).map_err(|_| Error::InvalidPassword)?;
     let n: String = s.nfc().collect();
     if n.is_empty() {
         return Err(Error::EmptyPassword);
     }
-    Ok(n.into_bytes())
+    Ok(Zeroizing::new(n.into_bytes()))
 }
 
 fn derive_with_fallback(
@@ -142,9 +142,13 @@ fn derive_with_fallback(
 }
 
 /// Generate fresh keypairs and seal them under `password`.
+///
+/// `rng` MUST be a cryptographically secure OS RNG (`rand::rngs::OsRng` in
+/// production); the bound enforces this at compile time. Tests pass a
+/// deterministic RNG through the same parameter: no test-only path exists.
 pub fn create(
     password: &MasterPassword,
-    rng: &mut impl Rng,
+    rng: &mut impl CryptoRng,
     kdf: &impl Kdf,
 ) -> Result<Vec<u8>, Error> {
     let pw = normalized(password)?;
@@ -156,13 +160,16 @@ pub fn create(
     let (_enc_pk, enc_sk) = crypto_box_seed_keypair(&enc_seed);
     enc_seed.zeroize();
 
-    let plaintext = serde_json::to_vec(&serde_json::json!({
-        "v": 1,
-        "deviceId": device_id,
-        "encSecret": encodings::b64u_encode(enc_sk.as_slice()),
-        "signSeed": encodings::b64u_encode(&sign_seed),
-    }))
-    .map_err(|_| Error::Corrupt("plaintext"))?;
+    let plaintext = Zeroizing::new(
+        serde_json::to_vec(&serde_json::json!({
+            "v": 1,
+            "deviceId": device_id,
+            "encSecret": encodings::b64u_encode(enc_sk.as_slice()),
+            "signSeed": encodings::b64u_encode(&sign_seed),
+        }))
+        .map_err(|_| Error::Corrupt("plaintext"))?,
+    );
+    sign_seed.zeroize();
 
     let mut salt = [0u8; CRYPTO_PWHASH_SALTBYTES];
     rng.fill_bytes(&mut salt);
@@ -210,12 +217,12 @@ pub fn open(bytes: &[u8], password: &MasterPassword, kdf: &impl Kdf) -> Result<D
     let mut key = Zeroizing::new([0u8; 32]);
     kdf.derive(&mut key[..], &pw, salt, opslimit, memlimit)
         .map_err(|_| Error::Kdf)?;
-    let mut plaintext = vec![0u8; ciphertext.len() - CRYPTO_SECRETBOX_MACBYTES];
-    crypto_secretbox_open_easy(&mut plaintext, ciphertext, &nonce, &key)
+    let mut plaintext = Zeroizing::new(vec![0u8; ciphertext.len() - CRYPTO_SECRETBOX_MACBYTES]);
+    crypto_secretbox_open_easy(&mut plaintext[..], ciphertext, &nonce, &key)
         .map_err(|_| Error::WrongPassword)?;
 
     let v: serde_json::Value =
-        serde_json::from_slice(&plaintext).map_err(|_| Error::WrongPassword)?;
+        serde_json::from_slice(&plaintext[..]).map_err(|_| Error::WrongPassword)?;
     let obj = v.as_object().ok_or(Error::WrongPassword)?;
     if obj.len() != 4 || obj.get("v") != Some(&serde_json::json!(1)) {
         return Err(Error::WrongPassword);
@@ -225,22 +232,28 @@ pub fn open(bytes: &[u8], password: &MasterPassword, kdf: &impl Kdf) -> Result<D
         .and_then(|x| x.as_str())
         .ok_or(Error::WrongPassword)?;
     encodings::validate_id(device_id).map_err(|_| Error::WrongPassword)?;
-    let enc_secret_raw = encodings::b64u_decode(
-        obj.get("encSecret")
-            .and_then(|x| x.as_str())
-            .ok_or(Error::WrongPassword)?,
-    )
-    .map_err(|_| Error::WrongPassword)?;
-    let sign_seed_raw = encodings::b64u_decode(
-        obj.get("signSeed")
-            .and_then(|x| x.as_str())
-            .ok_or(Error::WrongPassword)?,
-    )
-    .map_err(|_| Error::WrongPassword)?;
-    let enc_secret_bytes: [u8; 32] = enc_secret_raw
+    let enc_secret_raw = Zeroizing::new(
+        encodings::b64u_decode(
+            obj.get("encSecret")
+                .and_then(|x| x.as_str())
+                .ok_or(Error::WrongPassword)?,
+        )
+        .map_err(|_| Error::WrongPassword)?,
+    );
+    let sign_seed_raw = Zeroizing::new(
+        encodings::b64u_decode(
+            obj.get("signSeed")
+                .and_then(|x| x.as_str())
+                .ok_or(Error::WrongPassword)?,
+        )
+        .map_err(|_| Error::WrongPassword)?,
+    );
+    let enc_secret_bytes: [u8; 32] = enc_secret_raw[..]
         .try_into()
         .map_err(|_| Error::WrongPassword)?;
-    let sign_seed_bytes: [u8; 32] = sign_seed_raw.try_into().map_err(|_| Error::WrongPassword)?;
+    let sign_seed_bytes: [u8; 32] = sign_seed_raw[..]
+        .try_into()
+        .map_err(|_| Error::WrongPassword)?;
 
     let mut sk = SecretKey::new_byte_array();
     sk.as_mut_array().copy_from_slice(&enc_secret_bytes);

@@ -46,17 +46,20 @@ impl std::error::Error for Error {}
 
 /// Create a new store layout in `dir`: `store.json` plus `.gitattributes`.
 /// `store_id` must be a valid 26-character id; `created` an RFC 3339 time
-/// (stored verbatim).
+/// (stored verbatim, but built with `serde_json` so it can never break the
+/// JSON structure).
 pub fn init(dir: &Path, store_id: &str, created: &str) -> Result<StoreInfo, Error> {
     validate_id(store_id).map_err(|_| Error::Invalid("storeId"))?;
     if created.is_empty() {
         return Err(Error::Invalid("created"));
     }
-    let body = format!(
-        "{{\"format\":{SUPPORTED_FORMAT},\"storeId\":\"{store_id}\",\"created\":\"{created}\"}}"
-    );
-    std::fs::write(dir.join("store.json"), body.as_bytes())
-        .map_err(|_| Error::Io("write store.json"))?;
+    let body = serde_json::to_vec(&serde_json::json!({
+        "format": SUPPORTED_FORMAT,
+        "storeId": store_id,
+        "created": created,
+    }))
+    .map_err(|_| Error::Invalid("store.json"))?;
+    std::fs::write(dir.join("store.json"), body).map_err(|_| Error::Io("write store.json"))?;
     std::fs::write(dir.join(".gitattributes"), GITATTRIBUTES.as_bytes())
         .map_err(|_| Error::Io("write .gitattributes"))?;
     Ok(StoreInfo {

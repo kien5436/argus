@@ -24,7 +24,7 @@ fn padded(plaintext: impl AsRef<[u8]>) -> Vec<u8> {
 fn t16_01_encrypt_then_decrypt_one_recipient_round_trips() {
     let (pk, sk) = pair(1);
     let plaintext = b"hello argus";
-    let bytes = encrypt(plaintext, &[pk]);
+    let bytes = encrypt(plaintext, &[pk]).unwrap();
     assert_eq!(decrypt(&bytes, &pk, &sk).unwrap(), padded(plaintext));
 }
 
@@ -33,7 +33,7 @@ fn t16_02_encrypt_to_two_recipients_either_decrypts() {
     let (pk1, sk1) = pair(11);
     let (pk2, sk2) = pair(22);
     let plaintext = b"shared secret";
-    let bytes = encrypt(plaintext, &[pk1, pk2]);
+    let bytes = encrypt(plaintext, &[pk1, pk2]).unwrap();
     assert_eq!(decrypt(&bytes, &pk1, &sk1).unwrap(), padded(plaintext));
     assert_eq!(decrypt(&bytes, &pk2, &sk2).unwrap(), padded(plaintext));
 }
@@ -42,7 +42,7 @@ fn t16_02_encrypt_to_two_recipients_either_decrypts() {
 fn t16_03_decrypt_with_identity_not_in_set_fails() {
     let (pk, _sk) = pair(31);
     let (other_pk, other_sk) = pair(32);
-    let bytes = encrypt(b"data", &[pk]);
+    let bytes = encrypt(b"data", &[pk]).unwrap();
     assert_eq!(
         decrypt(&bytes, &other_pk, &other_sk).unwrap_err(),
         Error::DecryptFailed
@@ -52,7 +52,7 @@ fn t16_03_decrypt_with_identity_not_in_set_fails() {
 #[test]
 fn t16_04_flipped_byte_in_magic_version_plen_rcount_fails() {
     let (pk, sk) = pair(41);
-    let bytes = encrypt(b"data", &[pk]);
+    let bytes = encrypt(b"data", &[pk]).unwrap();
     // Offsets: magic 0..6, version 6, plen 7..11, payload 11+24=35..,
     // rcount at 35+plen+16.
     let plen = u32::from_be_bytes(bytes[7..11].try_into().unwrap()) as usize;
@@ -70,7 +70,7 @@ fn t16_04_flipped_byte_in_magic_version_plen_rcount_fails() {
 #[test]
 fn t16_05_flipped_byte_in_payload_fails_authentication() {
     let (pk, sk) = pair(51);
-    let bytes = encrypt(b"payload tamper test", &[pk]);
+    let bytes = encrypt(b"payload tamper test", &[pk]).unwrap();
     let mut bad = bytes.clone();
     bad[40] ^= 0x01;
     assert_eq!(decrypt(&bad, &pk, &sk).unwrap_err(), Error::DecryptFailed);
@@ -79,7 +79,7 @@ fn t16_05_flipped_byte_in_payload_fails_authentication() {
 #[test]
 fn t16_06_empty_plaintext_round_trips() {
     let (pk, sk) = pair(61);
-    let bytes = encrypt(b"", &[pk]);
+    let bytes = encrypt(b"", &[pk]).unwrap();
     assert_eq!(decrypt(&bytes, &pk, &sk).unwrap(), b"");
 }
 
@@ -87,14 +87,14 @@ fn t16_06_empty_plaintext_round_trips() {
 fn t16_07_one_mib_round_trips() {
     let (pk, sk) = pair(71);
     let plaintext = vec![0xABu8; 1_048_576];
-    let bytes = encrypt(&plaintext, &[pk]);
+    let bytes = encrypt(&plaintext, &[pk]).unwrap();
     assert_eq!(decrypt(&bytes, &pk, &sk).unwrap(), padded(plaintext));
 }
 
 #[test]
 fn t16_08_truncated_ciphertext_fails() {
     let (pk, sk) = pair(81);
-    let bytes = encrypt(b"truncate me", &[pk]);
+    let bytes = encrypt(b"truncate me", &[pk]).unwrap();
     let short = &bytes[..bytes.len() / 2];
     assert!(decrypt(short, &pk, &sk).is_err());
 }
@@ -102,7 +102,7 @@ fn t16_08_truncated_ciphertext_fails() {
 #[test]
 fn t16_09_plen_not_multiple_of_512_or_over_1mib_is_damaged() {
     let (pk, sk) = pair(91);
-    let bytes = encrypt(b"x", &[pk]);
+    let bytes = encrypt(b"x", &[pk]).unwrap();
     // plen = 1 is not a multiple of 512.
     let mut bad = bytes.clone();
     bad[7..11].copy_from_slice(&1u32.to_be_bytes());
@@ -121,7 +121,7 @@ fn t16_10_add_recipient_appends_sealed_key_payload_unchanged() {
     let (pk1, sk1) = pair(101);
     let (pk2, sk2) = pair(102);
     let plaintext = b"approve path";
-    let before = encrypt(plaintext, &[pk1]);
+    let before = encrypt(plaintext, &[pk1]).unwrap();
     let plen = u32::from_be_bytes(before[7..11].try_into().unwrap()) as usize;
     let payload_end = 35 + plen + 16;
     let after = add_recipient(&before, &pk2, &pk1, &sk1).unwrap();
@@ -139,7 +139,7 @@ fn t16_10_add_recipient_appends_sealed_key_payload_unchanged() {
 #[test]
 fn t16_11_rcount_mismatch_marks_entry_damaged() {
     let (pk, sk) = pair(111);
-    let bytes = encrypt(b"data", &[pk]);
+    let bytes = encrypt(b"data", &[pk]).unwrap();
     let plen = u32::from_be_bytes(bytes[7..11].try_into().unwrap()) as usize;
     let rcount_off = 35 + plen + 16;
     let mut bad = bytes.clone();
@@ -168,4 +168,26 @@ fn t16_13_input_shorter_than_header_is_damaged() {
 fn t16_14_error_displays_without_secret_text() {
     assert_eq!(format!("{}", Error::Damaged("plen")), "damaged entry: plen");
     assert_eq!(format!("{}", Error::DecryptFailed), "decryption failed");
+}
+
+#[test]
+fn encrypt_refuses_no_recipients() {
+    assert_eq!(encrypt(b"data", &[]).unwrap_err(), Error::NoRecipients);
+}
+
+#[test]
+fn encrypt_refuses_oversize_plaintext() {
+    let (pk, _sk) = pair(131);
+    let big = vec![0u8; 1_048_577];
+    assert_eq!(encrypt(&big, &[pk]).unwrap_err(), Error::TooLarge);
+}
+
+#[test]
+fn encrypt_refuses_too_many_recipients() {
+    let (pk, _sk) = pair(141);
+    let many = vec![pk; u16::MAX as usize + 1];
+    assert_eq!(
+        encrypt(b"data", &many).unwrap_err(),
+        Error::TooManyRecipients
+    );
 }

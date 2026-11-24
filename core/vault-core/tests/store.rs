@@ -77,6 +77,38 @@ fn t19_06_missing_store_json_reported_as_not_a_store() {
     assert_eq!(store::open(&dir).unwrap_err(), store::Error::NotAStore);
 }
 
+#[test]
+fn store_error_displays_carry_no_paths_or_contents() {
+    assert_eq!(format!("{}", store::Error::NotAStore), "not a store");
+    assert_eq!(
+        format!("{}", store::Error::FormatUnsupported(2)),
+        "unsupported store format 2"
+    );
+    assert_eq!(
+        format!("{}", store::Error::Invalid("created")),
+        "invalid store: created"
+    );
+    assert_eq!(
+        format!("{}", store::Error::Io("write store.json")),
+        "store io error: write store.json"
+    );
+}
+
+#[test]
+fn init_refuses_empty_created_and_escapes_special_characters() {
+    let dir = tempfile_dir();
+    assert_eq!(
+        store::init(&dir, &new_id(), "").unwrap_err(),
+        store::Error::Invalid("created")
+    );
+    // A timestamp containing JSON metacharacters must be escaped, not
+    // injected: the file still parses and round-trips verbatim.
+    let hostile = "2026-11-19T09:00:00Z\",\"evil\":\"1";
+    store::init(&dir, &new_id(), hostile).unwrap();
+    let info = store::open(&dir).unwrap();
+    assert_eq!(info.created, hostile);
+}
+
 fn tempfile_dir() -> std::path::PathBuf {
     let mut dir = std::env::temp_dir();
     dir.push(format!(

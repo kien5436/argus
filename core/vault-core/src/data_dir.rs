@@ -71,13 +71,26 @@ pub fn ensure_dir(path: &Path) -> Result<(), Error> {
 }
 
 /// Write `bytes` to `path`, ensuring the file has mode 0600.
+///
+/// Creates the file with 0600 from the start (via `OpenOptions`) so there is
+/// no window where a fresh file is readable by others before `chmod` runs.
 pub fn write_file(path: &Path, bytes: &[u8]) -> Result<(), Error> {
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() {
             ensure_dir(parent)?;
         }
     }
-    std::fs::write(path, bytes).map_err(|_| Error::Io("write file"))?;
+    let mut opts = std::fs::OpenOptions::new();
+    opts.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        opts.mode(0o600);
+    }
+    let mut file = opts.open(path).map_err(|_| Error::Io("write file"))?;
+    std::io::Write::write_all(&mut file, bytes).map_err(|_| Error::Io("write file"))?;
+    file.sync_all().map_err(|_| Error::Io("sync file"))?;
+    drop(file);
     chmod(path, 0o600).map_err(|_| Error::Io("chmod file"))?;
     Ok(())
 }

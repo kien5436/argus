@@ -68,13 +68,6 @@ fn t15_02_entry_like_struct_hides_password_in_debug() {
 }
 
 #[test]
-fn t15_03_drop_zeroises_the_buffer() {
-    let (ptr, len) = SecretBytes::new(b"sensitive-data-123".to_vec()).__test_zeroize_and_leak();
-    let after = unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec();
-    assert!(after.iter().all(|b| *b == 0), "buffer was not zeroised");
-}
-
-#[test]
 fn t15_05_equality_is_constant_time_and_correct() {
     use subtle::ConstantTimeEq;
     let a = SecretBytes::new(b"same-content".to_vec());

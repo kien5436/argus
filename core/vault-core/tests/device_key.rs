@@ -44,6 +44,8 @@ impl TryRng for FixedRng {
     }
 }
 
+impl rand::TryCryptoRng for FixedRng {}
+
 /// Scripted KDF: records requested (opslimit, memlimit), fails when told to,
 /// and derives deterministically via SHA-256 so tests stay fast.
 struct ScriptedKdf {

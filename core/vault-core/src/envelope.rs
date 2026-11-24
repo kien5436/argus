@@ -40,6 +40,12 @@ pub enum Error {
     Damaged(&'static str),
     /// Authentication failed (wrong identity or tampered payload).
     DecryptFailed,
+    /// Padded plaintext exceeds the 1 MiB format limit.
+    TooLarge,
+    /// No recipients: encrypting to an empty set is refused.
+    NoRecipients,
+    /// More recipients than the `u16` `rcount` field can hold.
+    TooManyRecipients,
 }
 
 impl fmt::Display for Error {
@@ -47,6 +53,9 @@ impl fmt::Display for Error {
         match self {
             Error::Damaged(reason) => write!(f, "damaged entry: {reason}"),
             Error::DecryptFailed => write!(f, "decryption failed"),
+            Error::TooLarge => write!(f, "entry exceeds 1 MiB"),
+            Error::NoRecipients => write!(f, "no recipients"),
+            Error::TooManyRecipients => write!(f, "too many recipients"),
         }
     }
 }
@@ -63,14 +72,20 @@ fn padded_len(len: usize) -> usize {
 
 /// Encrypt `plaintext` to `recipients` (32-byte X25519 public keys).
 ///
-/// # Panics
-///
-/// Panics if the padded plaintext exceeds 1 MiB or no recipient is given.
-/// The entry layer (T6.1) refuses oversize writes before reaching here.
-pub fn encrypt(plaintext: &[u8], recipients: &[[u8; 32]]) -> Vec<u8> {
-    assert!(!recipients.is_empty(), "at least one recipient");
+/// Refuses an empty recipient set, more recipients than the `u16` `rcount`
+/// field can hold, and plaintext whose padded length exceeds 1 MiB. The entry
+/// layer (T6.1) also refuses oversize writes; this is a defence in depth.
+pub fn encrypt(plaintext: &[u8], recipients: &[[u8; 32]]) -> Result<Vec<u8>, Error> {
+    if recipients.is_empty() {
+        return Err(Error::NoRecipients);
+    }
+    if recipients.len() > u16::MAX as usize {
+        return Err(Error::TooManyRecipients);
+    }
     let plen = padded_len(plaintext.len());
-    assert!(plen <= MAX_PLEN, "plaintext exceeds 1 MiB");
+    if plen > MAX_PLEN {
+        return Err(Error::TooLarge);
+    }
     let mut padded = vec![b' '; plen];
     padded[..plaintext.len()].copy_from_slice(plaintext);
 
@@ -95,8 +110,9 @@ pub fn encrypt(plaintext: &[u8], recipients: &[[u8; 32]]) -> Vec<u8> {
         crypto_box_seal(&mut sealed, &file_key, pk).expect("seal must succeed");
         out.extend_from_slice(&sealed);
     }
+    padded.zeroize();
     file_key.zeroize();
-    out
+    Ok(out)
 }
 
 /// Parsed header offsets.
@@ -158,6 +174,10 @@ fn open_file_key(
 }
 
 /// Decrypt `bytes` with (`my_public`, `my_secret`), returning the padded plaintext.
+///
+/// Callers hold keys in `PrivateKey` and copy the 32 bytes out only for the
+/// duration of this call; zeroise the copy afterwards. Never keep raw key
+/// material in a long-lived structure.
 pub fn decrypt(bytes: &[u8], my_public: &[u8; 32], my_secret: &[u8; 32]) -> Result<Vec<u8>, Error> {
     let h = parse(bytes)?;
     let file_key = open_file_key(bytes, &h, my_public, my_secret)?;

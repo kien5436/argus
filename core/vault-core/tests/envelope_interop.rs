@@ -39,7 +39,7 @@ fn t16_12a_dryoc_file_decrypts_through_c_libsodium() {
     init();
     let (pk, sk) = pair(201);
     let plaintext = b"interop dryoc -> c";
-    let bytes = vault_core::envelope::encrypt(plaintext, &[pk]);
+    let bytes = vault_core::envelope::encrypt(plaintext, &[pk]).unwrap();
     let (plen, nonce, payload, sealed) = parse_layout(&bytes);
 
     let mut file_key = [0u8; 32];

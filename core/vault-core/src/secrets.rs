@@ -26,19 +26,6 @@ macro_rules! secret {
             pub fn expose(&self) -> &[u8] {
                 &self.0
             }
-
-            /// Test-only hook: zeroise the buffer and leak its allocation,
-            /// returning a pointer to the still-live memory.
-            ///
-            /// Proves [`Zeroize`] ran on the real buffer. Reading the
-            /// result is sound because the allocation is leaked, never
-            /// freed; the leak is acceptable in tests.
-            #[doc(hidden)]
-            pub fn __test_zeroize_and_leak(self) -> (*const u8, usize) {
-                let mut this = std::mem::ManuallyDrop::new(self);
-                this.0.zeroize();
-                (this.0.as_ptr(), this.0.len())
-            }
         }
 
         impl Drop for $name {
@@ -75,3 +62,22 @@ secret!(MasterPassword, "The master password.");
 secret!(PrivateKey, "A private key.");
 secret!(OtpSecret, "A TOTP or HOTP secret.");
 secret!(OtpCode, "A one-time code.");
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// T1.5-03: dropping a secret zeroises its buffer. Runs the same
+    /// `Zeroize` call as `Drop`, then reads the still-live allocation.
+    /// The allocation is never freed (leaked), so the read is sound.
+    /// This unit test never ships; the production API has no test hook.
+    #[test]
+    fn drop_zeroises_the_buffer() {
+        let mut this =
+            std::mem::ManuallyDrop::new(SecretBytes::new(b"sensitive-data-123".to_vec()));
+        let (ptr, len) = (this.0.as_ptr(), this.0.len());
+        this.0.zeroize();
+        let after = unsafe { std::slice::from_raw_parts(ptr, len) };
+        assert!(after.iter().all(|b| *b == 0), "buffer was not zeroised");
+    }
+}
