@@ -53,8 +53,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T4.2 | Chain verification | T4.1 | GREEN | 3ad522f |
 | T4.3 | Pin, rollback and fork | T4.2 | GREEN | feba8fe |
 | T4.4 | Recipient set and encrypt guard | T4.3 | GREEN | c4eb811 |
-| T5.1 | init | T4.4 | GREEN | |
-| T5.2 | join request | T5.1 | TODO | |
+| T5.1 | init | T4.4 | GREEN | de8d553 |
+| T5.2 | join request | T5.1 | GREEN | |
 | T5.3 | approve | T5.2 | TODO | |
 | T5.4 | verify anchor | T5.3 | TODO | |
 | T5.5 | reconcile | T5.4 | TODO | |
@@ -510,13 +510,13 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** a new device writes `pending-<deviceId>.json`, signed with `argus-join-v1`, commits, pushes, and records `join_state.json`.
 - **Spec:** 04 section 4.2.
 - **Tests:**
-  - [ ] T5.2-01 The pending file matches the layout in 04 section 4.2.
-  - [ ] T5.2-02 Its signature verifies with the device's own key and the `argus-join-v1` prefix.
-  - [ ] T5.2-03 A changed field fails the signature.
-  - [ ] T5.2-04 `join_state.json` is written; the device decrypts nothing and trusts no list at this point.
-  - [ ] T5.2-05 A store id that differs from the store found on the remote is refused.
-  - [ ] T5.2-06 Re-running the join request replaces the pending file for the same device, and does not duplicate it.
-  - [ ] T5.2-07 The join commit's message is `update`.
+  - [x] T5.2-01 The pending file matches the layout in 04 section 4.2.
+  - [x] T5.2-02 Its signature verifies with the device's own key and the `argus-join-v1` prefix.
+  - [x] T5.2-03 A changed field fails the signature.
+  - [x] T5.2-04 `join_state.json` is written; the device decrypts nothing and trusts no list at this point.
+  - [x] T5.2-05 A store id that differs from the store found on the remote is refused.
+  - [x] T5.2-06 Re-running the join request replaces the pending file for the same device, and does not duplicate it.
+  - [x] T5.2-07 The join commit's message is `update`.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T5.2 join request`
 
