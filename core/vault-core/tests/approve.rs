@@ -400,6 +400,12 @@ fn t53_07_rejected_push_triggers_redo() {
         fn is_shallow(&self, p: &Path) -> bool {
             self.inner.is_shallow(p)
         }
+        fn file_at(&self, p: &Path, c: &str, f: &str) -> Result<Vec<u8>, vault_core::git::Error> {
+            self.inner.file_at(p, c, f)
+        }
+        fn fast_forward(&self, p: &Path, r: &str) -> Result<(), vault_core::git::Error> {
+            self.inner.fast_forward(p, r)
+        }
     }
     let seed = seed_first("t5307");
     let (jw, _jd, dev) = add_join(&seed, "t5307", "iphone");

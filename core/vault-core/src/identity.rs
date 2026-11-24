@@ -89,20 +89,26 @@ pub fn anchor_display(version: u64, file_bytes: &[u8]) -> String {
 }
 
 /// Parse an anchor, ignoring case and spaces. Version 0 is rejected.
+///
+/// The hash part is always the last 32 hex characters, so the version is
+/// everything between `v` and that suffix. Parsing from the right keeps
+/// `v2 2cf2 ...` (hash starting with a digit) unambiguous.
 pub fn parse_anchor(s: &str) -> Result<Anchor, Error> {
     let compact: String = s.chars().filter(|c| *c != ' ').collect();
     let lower = compact.to_ascii_lowercase();
     let rest = lower.strip_prefix('v').ok_or(Error::InvalidAnchor)?;
-    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
-    if digits.is_empty() {
+    if rest.len() < 33 {
         return Err(Error::InvalidAnchor);
     }
-    let version: u64 = digits.parse().map_err(|_| Error::InvalidAnchor)?;
+    let (version_str, hex) = rest.split_at(rest.len() - 32);
+    if version_str.is_empty() || !version_str.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(Error::InvalidAnchor);
+    }
+    let version: u64 = version_str.parse().map_err(|_| Error::InvalidAnchor)?;
     if version == 0 {
         return Err(Error::InvalidAnchor);
     }
-    let hex = &rest[digits.len()..];
-    if hex.len() != 32 || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+    if !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
         return Err(Error::InvalidAnchor);
     }
     let mut prefix = [0u8; 16];

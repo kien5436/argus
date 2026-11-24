@@ -124,6 +124,17 @@ impl<B: Backend> Backend for FlakyPush<B> {
     fn is_shallow(&self, path: &Path) -> bool {
         self.inner.is_shallow(path)
     }
+    fn file_at(
+        &self,
+        path: &Path,
+        commit: &str,
+        file: &str,
+    ) -> Result<Vec<u8>, vault_core::git::Error> {
+        self.inner.file_at(path, commit, file)
+    }
+    fn fast_forward(&self, path: &Path, rev: &str) -> Result<(), vault_core::git::Error> {
+        self.inner.fast_forward(path, rev)
+    }
 }
 
 fn author() -> Author {

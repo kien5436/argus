@@ -19,3 +19,4 @@ pub mod session;
 pub mod signatures;
 pub mod store;
 pub mod trust;
+pub mod verify;

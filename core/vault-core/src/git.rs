@@ -128,6 +128,11 @@ pub trait Backend {
     fn add_remote(&self, path: &Path, name: &str, url: &str) -> Result<(), Error>;
     fn fetch(&self, path: &Path, remote: &str) -> Result<(), Error>;
     fn push(&self, path: &Path, remote: &str) -> Result<(), Error>;
+    /// Bytes of `file` at `commit` (a commit id or rev like `FETCH_HEAD`).
+    /// Used to read the device-list history after a fetch (T5.4).
+    fn file_at(&self, path: &Path, commit: &str, file: &str) -> Result<Vec<u8>, Error>;
+    /// Fast-forward the current branch to `rev`. Fails when not fast-forward.
+    fn fast_forward(&self, path: &Path, rev: &str) -> Result<(), Error>;
     /// True when the checkout has a `.git/shallow` marker.
     fn is_shallow(&self, path: &Path) -> bool;
 }
@@ -395,6 +400,37 @@ impl Backend for SystemBackend {
         Err(Error::Git("push failed"))
     }
 
+    fn file_at(&self, path: &Path, commit: &str, file: &str) -> Result<Vec<u8>, Error> {
+        let bin = git_bin()?;
+        let spec = format!("{commit}:{file}");
+        let out = Command::new(&bin)
+            .arg("-C")
+            .arg(path)
+            .args(["show", spec.as_str()])
+            .output()
+            .map_err(|_| Error::Git("spawn failed"))?;
+        if out.status.success() {
+            Ok(out.stdout)
+        } else {
+            Err(Error::Git("read failed"))
+        }
+    }
+
+    fn fast_forward(&self, path: &Path, rev: &str) -> Result<(), Error> {
+        let bin = git_bin()?;
+        let out = Command::new(&bin)
+            .arg("-C")
+            .arg(path)
+            .args(["merge", "--ff-only", rev])
+            .output()
+            .map_err(|_| Error::Git("spawn failed"))?;
+        if out.status.success() {
+            Ok(())
+        } else {
+            Err(Error::Git("not fast-forward"))
+        }
+    }
+
     fn is_shallow(&self, path: &Path) -> bool {
         check_not_shallow(path).is_err()
     }
@@ -551,6 +587,38 @@ impl Backend for Libgit2Backend {
                 Err(Error::Rejected)
             }
         }
+    }
+
+    fn file_at(&self, path: &Path, commit: &str, file: &str) -> Result<Vec<u8>, Error> {
+        let repo = libgit2_error(git2::Repository::open(path))?;
+        let obj = libgit2_error(repo.revparse_single(commit))?;
+        let commit = libgit2_error(obj.peel_to_commit())?;
+        let tree = libgit2_error(commit.tree())?;
+        let entry = libgit2_error(tree.get_path(Path::new(file)))?;
+        let obj = libgit2_error(entry.to_object(&repo))?;
+        let blob = libgit2_error(obj.peel_to_blob())?;
+        Ok(blob.content().to_vec())
+    }
+
+    fn fast_forward(&self, path: &Path, rev: &str) -> Result<(), Error> {
+        let repo = libgit2_error(git2::Repository::open(path))?;
+        let target = libgit2_error(repo.revparse_single(rev))?;
+        let target = libgit2_error(target.peel_to_commit())?;
+        let mut head = libgit2_error(repo.head())?;
+        let current = libgit2_error(head.peel_to_commit())?;
+        if current.id() == target.id() {
+            return Ok(());
+        }
+        let base = libgit2_error(repo.merge_base(current.id(), target.id()))?;
+        if base != current.id() {
+            return Err(Error::Git("not fast-forward"));
+        }
+        libgit2_error(repo.checkout_tree(
+            target.as_object(),
+            Some(git2::build::CheckoutBuilder::new().force()),
+        ))?;
+        libgit2_error(head.set_target(target.id(), "fast-forward"))?;
+        Ok(())
     }
 
     fn is_shallow(&self, path: &Path) -> bool {
