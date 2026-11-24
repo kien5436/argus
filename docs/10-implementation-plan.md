@@ -43,7 +43,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T2.1 | device.key: create and open | T1.10 | GREEN | |
 | T2.2 | Session and lax-time policy | T2.1 | GREEN | |
 | T2.3 | Master password change | T2.2 | GREEN | |
-| T2.4 | SecureStorage interface | T2.3 | TODO | |
+| T2.4 | SecureStorage interface | T2.3 | GREEN | |
 | T3.1 | Local git operations (system git or libgit2) | T2.4 | TODO | |
 | T3.2 | Remote URLs, credentials, host keys | T3.1 | TODO | |
 | T3.3 | Fetch and push, refusal checks | T3.2 | TODO | |
@@ -346,11 +346,11 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** the core calls `saveKey`, `loadKey` and `deleteKey` on a trait. A test double implements it. The core never calls an OS API.
 - **Spec:** 01 Core API; AGENTS invariants.
 - **Tests:**
-  - [ ] T2.4-01 Save then load returns the stored bytes.
-  - [ ] T2.4-02 Load of a missing key returns `None`.
-  - [ ] T2.4-03 Delete removes the key; a second delete is not an error.
-  - [ ] T2.4-04 The core compiles without any platform crate (dependency check in CI).
-  - [ ] T2.4-05 The double records each call; a test asserts the expected sequence for unlock.
+  - [x] T2.4-01 Save then load returns the stored bytes.
+  - [x] T2.4-02 Load of a missing key returns `None`.
+  - [x] T2.4-03 Delete removes the key; a second delete is not an error.
+  - [x] T2.4-04 The core compiles without any platform crate (dependency check in CI).
+  - [x] T2.4-05 The double records each call; a test asserts the expected sequence for unlock.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T2.4 SecureStorage interface`
 

@@ -6,6 +6,7 @@ pub mod entry;
 pub mod envelope;
 pub mod identity;
 pub mod secrets;
+pub mod secure_storage;
 pub mod session;
 pub mod signatures;
 pub mod store;
