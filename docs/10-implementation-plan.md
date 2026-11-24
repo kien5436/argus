@@ -39,7 +39,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.7 | Entry plaintext format | T1.6 | GREEN | |
 | T1.8 | Entry signature | T1.7 | GREEN | |
 | T1.9 | Store layout and store.json | T1.8 | GREEN | |
-| T1.10 | Data folder and permissions | T1.9 | TODO | |
+| T1.10 | Data folder and permissions | T1.9 | GREEN | |
 | T2.1 | device.key: create and open | T1.10 | TODO | |
 | T2.2 | Session and lax-time policy | T2.1 | TODO | |
 | T2.3 | Master password change | T2.2 | TODO | |
@@ -287,12 +287,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** create the per-platform data folder with the right modes; honour `ARGUS_HOME`.
 - **Spec:** 01 data folder; 05 section (lock and clipboard) for `argus.log` mode.
 - **Tests:**
-  - [ ] T1.10-01 The folder is created with mode 0700.
-  - [ ] T1.10-02 A file written by the core has mode 0600.
-  - [ ] T1.10-03 `ARGUS_HOME` overrides the location for tests.
-  - [ ] T1.10-04 An existing folder with looser permissions is tightened or refused (decision recorded in the test name).
-  - [ ] T1.10-05 A path with a symbolic link at the data folder is refused.
-  - [ ] T1.10-06 The default macOS path is `~/Library/Application Support/Argus/` for a given home directory.
+  - [x] T1.10-01 The folder is created with mode 0700.
+  - [x] T1.10-02 A file written by the core has mode 0600.
+  - [x] T1.10-03 `ARGUS_HOME` overrides the location for tests.
+  - [x] T1.10-04 An existing folder with looser permissions is tightened or refused (decision recorded in the test name).
+  - [x] T1.10-05 A path with a symbolic link at the data folder is refused.
+  - [x] T1.10-06 The default macOS path is `~/Library/Application Support/Argus/` for a given home directory.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T1.10 data folder and permissions`
 

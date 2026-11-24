@@ -1,4 +1,5 @@
 pub mod canonical_json;
+pub mod data_dir;
 pub mod encodings;
 pub mod entry;
 pub mod envelope;
