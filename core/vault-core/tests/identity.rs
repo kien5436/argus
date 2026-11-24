@@ -12,25 +12,34 @@ fn x_key() -> [u8; 32] {
     k
 }
 
-#[test]
-fn t14_01_bech32_matches_bip173_vector() {
-    let (hrp, data) = bech32::decode("a12uel5l").unwrap();
-    assert_eq!(hrp.as_str(), "a");
-    assert!(data.is_empty());
+/// bech32m encoding (BIP-350) of key bytes 0..32 under HRP `argus`.
+fn recipient_str() -> &'static str {
+    "argus1qqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0s4vsgja"
 }
 
 #[test]
-fn t14_02_valid_recipient_round_trips_and_is_62_chars() {
-    let s = "age1qqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0savhh7m";
+fn t14_01_bech32m_matches_bip350_vectors() {
+    use bech32::primitives::decode::CheckedHrpstring;
+    // Valid BIP-350 bech32m strings decode; the BIP-173 bech32
+    // vector `a12uel5l` is not valid bech32m.
+    assert!(CheckedHrpstring::new::<bech32::Bech32m>("A1LQFN3A").is_ok());
+    assert!(CheckedHrpstring::new::<bech32::Bech32m>("a1lqfn3a").is_ok());
+    assert!(CheckedHrpstring::new::<bech32::Bech32m>("a12uel5l").is_err());
+}
+
+#[test]
+fn t14_02_valid_recipient_round_trips_and_is_64_chars() {
+    let s = recipient_str();
+    assert!(s.starts_with("argus1"));
     let r = parse_recipient(s).unwrap();
     let back = r.to_string();
     assert_eq!(back, s);
-    assert_eq!(back.len(), 62);
+    assert_eq!(back.len(), 64);
 }
 
 #[test]
 fn t14_03_recipient_with_bad_checksum_is_rejected() {
-    let mut s = "age1qqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0savhh7m".to_owned();
+    let mut s = recipient_str().to_owned();
     s.replace_range(10..11, "q");
     assert_ne!(s.chars().nth(10), Some('0'));
     assert!(parse_recipient(&s).is_err());
@@ -38,15 +47,15 @@ fn t14_03_recipient_with_bad_checksum_is_rejected() {
 
 #[test]
 fn t14_04_recipient_with_wrong_prefix_is_rejected() {
-    let s =
-        "age1qqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0savhh7m".replace("age1", "age9");
+    let s = recipient_str().replace("argus1", "age1");
     assert!(parse_recipient(&s).is_err());
 }
 
 #[test]
 fn t14_05_recipient_with_bad_character_is_rejected() {
-    let s = "age1ql3z7hj432v2jl2z8alunwwun8hm4s4hf0h2a29tuy0qxu3umxgl4qpI";
-    assert!(parse_recipient(s).is_err());
+    let mut s = recipient_str().to_owned();
+    s.replace_range(12..13, "I");
+    assert!(parse_recipient(&s).is_err());
 }
 
 #[test]
@@ -149,22 +158,9 @@ fn t14_12_fingerprint_and_anchor_match_vectors() {
     );
 }
 
-fn hex32(s: &str) -> [u8; 32] {
-    let mut out = [0u8; 32];
-    for i in 0..32 {
-        out[i] = u8::from_str_radix(&s[2 * i..2 * i + 2], 16).unwrap();
-    }
-    out
-}
-
-fn hex_of(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
-}
-
 #[test]
 fn t14_13_recipient_bytes_round_trip_and_huge_anchor_version_rejected() {
-    let r =
-        parse_recipient("age1qqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0savhh7m").unwrap();
+    let r = parse_recipient(recipient_str()).unwrap();
     let expected: Vec<u8> = (0u8..32).collect();
     assert_eq!(r.bytes(), expected.as_slice());
     assert!(
@@ -177,4 +173,16 @@ fn t14_14_errors_display_without_key_text() {
     use vault_core::identity::Error;
     assert!(!format!("{}", Error::InvalidRecipient).is_empty());
     assert!(!format!("{}", Error::InvalidAnchor).is_empty());
+}
+
+fn hex32(s: &str) -> [u8; 32] {
+    let mut out = [0u8; 32];
+    for i in 0..32 {
+        out[i] = u8::from_str_radix(&s[2 * i..2 * i + 2], 16).unwrap();
+    }
+    out
+}
+
+fn hex_of(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
 }

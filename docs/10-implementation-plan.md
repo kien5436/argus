@@ -32,8 +32,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T0.3 | Spec sync check | T0.2 | DROPPED (owner decision 2026-11-23) | |
 | T1.1 | Canonical JSON | T0.2 | GREEN | |
 | T1.2 | Encodings and ids | T1.1 | GREEN | |
-| T1.3 | Domain-separated signatures | T1.2 | GREEN | |
-| T1.4 | Recipients, fingerprints, anchors | T1.3 | TODO | |
+| T1.3 | Domain-separated signatures (dryoc backend) | T1.2 | GREEN | |
+| T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | |
 | T1.5 | Secret types | T1.4 | GREEN | |
 | T1.6 | crypto envelope and sealed recipients | T1.5 | TODO | |
 | T1.7 | Entry plaintext format | T1.6 | TODO | |
@@ -172,8 +172,8 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Commit:** `feat: T1.2 encodings and ids`
 
 #### T1.3 Domain-separated signatures
-- **Feature:** Ed25519 signing and verification over `prefix || canonical bytes`, where the prefix ends in a newline. Verification uses strict mode.
-- **Spec:** 03 sections 3.1 and 3.4.
+- **Feature:** Ed25519 signing and verification over `prefix || canonical bytes`, where the prefix ends in a newline, via dryoc `crypto_sign` (libsodium-compatible backend). Keys are seed-based (`SigningKey` holds the 32-byte seed, zeroed on drop); verification uses strict mode.
+- **Spec:** 03 sections 3.1 and 3.2 (dryoc backend), and 3.4.
 - **Tests:**
   - [x] T1.3-01 A signature verifies with its key and prefix.
   - [x] T1.3-02 The same signature fails under a different prefix (`devices`, `entry`, `join`).
@@ -181,7 +181,8 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [x] T1.3-04 A signature from another key fails.
   - [x] T1.3-05 A non-canonical signature encoding (malleable `S` value) is rejected.
   - [x] T1.3-06 Each prefix is exactly its ASCII string followed by `0x0A`.
-  - [x] T1.3-07 The Ed25519 test vectors from RFC 8032 verify.
+  - [x] T1.3-07 The Ed25519 test vectors from RFC 8032 verify through the dryoc backend (bare check), and never under a domain prefix.
+  - [x] T1.3-08 The error displays without secret text.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T1.3 domain-separated Ed25519 signatures`
 
@@ -189,18 +190,18 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** encode and parse `argus1...` recipient keys (bech32m, BIP-350), compute device fingerprints, format and parse anchors.
 - **Spec:** 03 sections 3.5 (Fingerprint, Anchor) and 4.4. Anchor input is not case-sensitive and ignores spaces.
 - **Tests:**
-  - [ ] T1.4-01 bech32m matches the BIP-350 vectors; the BIP-173 vector `a12uel5l` (original bech32) is rejected for the `argus` prefix.
-  - [ ] T1.4-02 A valid recipient round-trips to the same string and is 64 characters long.
-  - [ ] T1.4-03 A recipient with a bad checksum is rejected.
-  - [ ] T1.4-04 A recipient with the wrong prefix (not `argus`) is rejected.
-  - [ ] T1.4-05 A recipient with a bad character is rejected.
-  - [ ] T1.4-06 Fingerprint equals SHA-256 of `argus-device-v1\n` + Ed25519 key + X25519 key (the raw 32 bytes), for fixed keys.
-  - [ ] T1.4-07 Fingerprint display is 8 groups of 4 lowercase hex characters from the first 16 bytes.
-  - [ ] T1.4-08 Anchor is `v<version>` followed by 8 groups from the first 16 bytes of SHA-256 of the file bytes.
-  - [ ] T1.4-09 Anchor parse accepts the canonical form.
-  - [ ] T1.4-10 Anchor parse ignores case and spaces (03 section 3.5).
-  - [ ] T1.4-11 Anchor with a non-hex group, a missing group, or a version of 0 is rejected.
-  - [ ] T1.4-12 Fingerprint and anchor vectors match `core/vault-core/tests/vectors/`.
+  - [x] T1.4-01 bech32m matches the BIP-350 vectors; the BIP-173 vector `a12uel5l` (original bech32) is rejected for the `argus` prefix.
+  - [x] T1.4-02 A valid recipient round-trips to the same string and is 64 characters long.
+  - [x] T1.4-03 A recipient with a bad checksum is rejected.
+  - [x] T1.4-04 A recipient with the wrong prefix (not `argus`) is rejected.
+  - [x] T1.4-05 A recipient with a bad character is rejected.
+  - [x] T1.4-06 Fingerprint equals SHA-256 of `argus-device-v1\n` + Ed25519 key + X25519 key (the raw 32 bytes), for fixed keys.
+  - [x] T1.4-07 Fingerprint display is 8 groups of 4 lowercase hex characters from the first 16 bytes.
+  - [x] T1.4-08 Anchor is `v<version>` followed by 8 groups from the first 16 bytes of SHA-256 of the file bytes.
+  - [x] T1.4-09 Anchor parse accepts the canonical form.
+  - [x] T1.4-10 Anchor parse ignores case and spaces (03 section 3.5).
+  - [x] T1.4-11 Anchor with a non-hex group, a missing group, or a version of 0 is rejected.
+  - [x] T1.4-12 Fingerprint and anchor vectors match `core/vault-core/tests/vectors/`.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T1.4 recipients, fingerprints, anchors`
 

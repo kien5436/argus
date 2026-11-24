@@ -1,15 +1,15 @@
 //! Recipients, fingerprints and anchors (spec 03 section 3.5).
 //!
-//! `age1...` recipients parse and print as bech32. A fingerprint is the
-//! SHA-256 of `argus-device-v1\n` plus both public keys, shown as 8
+//! `argus1...` recipients parse and print as bech32m (BIP-350). A fingerprint
+//! is the SHA-256 of `argus-device-v1\n` plus both public keys, shown as 8
 //! groups of 4 hex characters. An anchor is `v<version>` plus 8 groups
 //! from the file hash; parsing ignores case and spaces.
 
 use bech32::primitives::decode::CheckedHrpstring;
-use bech32::{Bech32, Hrp};
+use bech32::{Bech32m, Hrp};
 use std::fmt;
 
-/// An `age1...` X25519 recipient: the 32 raw public-key bytes.
+/// An `argus1...` X25519 recipient: the 32 raw public-key bytes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Recipient([u8; 32]);
 
@@ -21,19 +21,21 @@ impl Recipient {
 
 impl fmt::Display for Recipient {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let hrp = Hrp::parse("age").map_err(|_| fmt::Error)?;
-        let s = bech32::encode::<Bech32>(hrp, &self.0).map_err(|_| fmt::Error)?;
+        let hrp = Hrp::parse("argus").map_err(|_| fmt::Error)?;
+        let s = bech32::encode::<Bech32m>(hrp, &self.0).map_err(|_| fmt::Error)?;
         f.write_str(&s)
     }
 }
 
-/// Parse an `age1...` recipient, checking prefix and checksum.
+/// Parse an `argus1...` recipient, checking prefix and checksum.
 pub fn parse_recipient(s: &str) -> Result<Recipient, Error> {
-    if !s.starts_with("age1") {
+    if !s.starts_with("argus1") {
         return Err(Error::InvalidRecipient);
     }
-    let checked = CheckedHrpstring::new::<Bech32>(s).map_err(|_| Error::InvalidRecipient)?;
-    debug_assert_eq!(checked.hrp().as_str(), "age");
+    let checked = CheckedHrpstring::new::<Bech32m>(s).map_err(|_| Error::InvalidRecipient)?;
+    if checked.hrp().as_str() != "argus" {
+        return Err(Error::InvalidRecipient);
+    }
     let bytes: Vec<u8> = checked.byte_iter().collect();
     let key: [u8; 32] = bytes.try_into().map_err(|_| Error::InvalidRecipient)?;
     Ok(Recipient(key))

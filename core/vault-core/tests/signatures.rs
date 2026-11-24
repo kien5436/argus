@@ -1,12 +1,11 @@
-use ed25519_dalek::{SigningKey, VerifyingKey};
-use vault_core::signatures::{sign, verify, Domain};
+use vault_core::signatures::{sign, verify, Domain, Signature, SigningKey, VerifyingKey};
 
 fn key(seed: u8) -> SigningKey {
-    SigningKey::from_bytes(&[seed; 32])
+    SigningKey::from_seed([seed; 32])
 }
 
 fn other_key() -> SigningKey {
-    SigningKey::from_bytes(&[0x42; 32])
+    SigningKey::from_seed([0x42; 32])
 }
 
 #[test]
@@ -66,7 +65,7 @@ fn t13_05_malleable_s_signature_is_rejected() {
     }
     assert_eq!(carry, 0, "S + L must not overflow");
     bytes[32..].copy_from_slice(&s.map(|w| w as u8));
-    let malleable = ed25519_dalek::Signature::from_bytes(&bytes);
+    let malleable = Signature::from_bytes(&bytes);
     assert!(verify(&sk.verifying_key(), Domain::Devices, msg, &malleable).is_err());
 }
 
@@ -86,7 +85,8 @@ fn t13_06_each_prefix_is_ascii_followed_by_newline() {
 
 #[test]
 fn t13_07_rfc8032_vectors_verify() {
-    // RFC 8032 section 7.3 TEST 1..3.
+    use dryoc::classic::crypto_sign::{crypto_sign_seed_keypair, crypto_sign_verify_detached};
+    // RFC 8032 section 7.3 TEST 1..3: (seed, public, message, signature).
     let vectors = [
         (
             "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
@@ -107,19 +107,22 @@ fn t13_07_rfc8032_vectors_verify() {
             "6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a",
         ),
     ];
-    for (secret_hex, public_hex, message_hex, sig_hex) in vectors {
-        let secret: [u8; 32] = hex(secret_hex);
+    for (seed_hex, public_hex, message_hex, sig_hex) in vectors {
+        let seed: [u8; 32] = hex(seed_hex);
         let public: [u8; 32] = hex(public_hex);
         let message = hex_bytes(message_hex);
         let expected: [u8; 64] = hex(sig_hex);
-        let sk = SigningKey::from_bytes(&secret);
-        assert_eq!(sk.verifying_key().to_bytes(), public);
+        // Bare Ed25519 through the dryoc backend matches RFC 8032.
+        let (pk, _sk) = crypto_sign_seed_keypair(&seed);
+        assert_eq!(pk, public);
+        assert!(crypto_sign_verify_detached(&expected, &message, &public).is_ok());
+        // ... but the RFC signature never verifies under a domain prefix.
         let vk = VerifyingKey::from_bytes(&public).unwrap();
-        let sig = ed25519_dalek::Signature::from_bytes(&expected);
-        // Primitive check: the RFC vectors verify as bare Ed25519.
-        assert!(vk.verify_strict(&message, &sig).is_ok());
-        // ... but never under a domain prefix.
+        let sig = Signature::from_bytes(&expected);
         assert!(verify(&vk, Domain::Devices, &message, &sig).is_err());
+        // And our domain signing from the same seed derives the same public key.
+        let sk = SigningKey::from_seed(seed);
+        assert_eq!(sk.verifying_key().to_bytes(), public);
     }
 }
 
