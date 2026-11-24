@@ -115,6 +115,14 @@ pub fn encrypt(plaintext: &[u8], recipients: &[[u8; 32]]) -> Result<Vec<u8>, Err
     Ok(out)
 }
 
+/// Number of sealed file keys (`rcount`) in `bytes`.
+///
+/// Lets callers compare the recipient set size with the verified device
+/// list (spec 04 section 4.6) without decrypting.
+pub fn recipient_count(bytes: &[u8]) -> Result<usize, Error> {
+    Ok(parse(bytes)?.rcount)
+}
+
 /// Parsed header offsets.
 struct Header {
     plen: usize,

@@ -19,7 +19,7 @@ This is the build order for Argus v1. It is a tracker as well as a plan. Each ta
 - **G3 Coverage.** Line coverage of every module the task touched is at least 90%, measured with `cargo llvm-cov`. Security-critical modules (verification, crypto wrappers, session, store writes) are at least 95%.
 - **G4 Secrets.** The secret-scan check in CI passes: no secret value, master password or private key appears in test output, logs or fixtures.
 - **G5 Spec.** Behaviour matches the spec sections named in the task.
-- **G6 Tracker and commit.** Status is updated, and the task has exactly one commit.
+- **G6 Tracker and commit.** Task is fully checked and the task has exactly one commit. Previous task's commit id is represented at tracker table.
 
 ## 3. Tracker
 
@@ -56,8 +56,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T5.1 | init | T4.4 | GREEN | de8d553 |
 | T5.2 | join request | T5.1 | GREEN | dcb23f4 |
 | T5.3 | approve | T5.2 | GREEN | 2d7ddcf |
-| T5.4 | verify anchor | T5.3 | GREEN | |
-| T5.5 | reconcile | T5.4 | TODO | |
+| T5.4 | verify anchor | T5.3 | GREEN | 96bb149 |
+| T5.5 | reconcile | T5.4 | GREEN | |
 | T5.6 | concurrent device-list changes | T5.5 | TODO | |
 | T6.1 | Entry create, read, update, delete | T5.6 | TODO | |
 | T6.2 | Index and search | T6.1 | TODO | |
@@ -555,11 +555,11 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** after each pull, compare each entry's `rcount` (sealed file keys) with the number of verified devices and repair mismatches.
 - **Spec:** 04 section 4.6.
 - **Tests:**
-  - [ ] T5.5-01 An entry missing one recipient is repaired by sealing the file key to it (append, payload unchanged).
-  - [ ] T5.5-02 An entry with an extra recipient is repaired by full re-encryption.
-  - [ ] T5.5-03 A sealed key that no verified device can open is treated as an extra recipient.
-  - [ ] T5.5-04 Repaired entries are committed in one commit.
-  - [ ] T5.5-05 A repair failure leaves the entry unchanged and reports it.
+  - [x] T5.5-01 An entry missing one recipient is repaired by sealing the file key to it (append, payload unchanged).
+  - [x] T5.5-02 An entry with an extra recipient is repaired by full re-encryption.
+  - [x] T5.5-03 A sealed key that no verified device can open is treated as an extra recipient.
+  - [x] T5.5-04 Repaired entries are committed in one commit.
+  - [x] T5.5-05 A repair failure leaves the entry unchanged and reports it.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T5.5 reconcile recipients`
 
