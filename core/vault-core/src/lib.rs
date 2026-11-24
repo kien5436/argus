@@ -1,5 +1,6 @@
 pub mod canonical_json;
 pub mod encodings;
+pub mod entry;
 pub mod envelope;
 pub mod identity;
 pub mod secrets;

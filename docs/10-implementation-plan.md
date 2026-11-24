@@ -36,7 +36,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | |
 | T1.5 | Secret types | T1.4 | GREEN | |
 | T1.6 | crypto envelope and sealed recipients | T1.5 | GREEN | |
-| T1.7 | Entry plaintext format | T1.6 | TODO | |
+| T1.7 | Entry plaintext format | T1.6 | GREEN | |
 | T1.8 | Entry signature | T1.7 | TODO | |
 | T1.9 | Store layout and store.json | T1.8 | TODO | |
 | T1.10 | Data folder and permissions | T1.9 | TODO | |
@@ -241,19 +241,19 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** serialise and parse the three entry types with the padding rule.
 - **Spec:** 03 section 3.4.
 - **Tests:**
-  - [ ] T1.7-01 A credential round-trips with all four fields.
-  - [ ] T1.7-02 A secret note round-trips with name and content.
-  - [ ] T1.7-03 An OTP round-trips with all fields and each algorithm (SHA1, SHA256, SHA512).
-  - [ ] T1.7-04 An OTP with `digits` 5 or 9 is rejected.
-  - [ ] T1.7-05 An OTP with both `period` and `counter` set is rejected.
-  - [ ] T1.7-06 Padding brings the plaintext to a multiple of 512 bytes for lengths 1, 511, 512, 513 and 1000.
-  - [ ] T1.7-07 Padding is trailing spaces and is ignored by the JSON parser.
-  - [ ] T1.7-08 An entry larger than 1 MiB is rejected on write and on read.
-  - [ ] T1.7-09 Unknown fields are preserved when an entry is parsed and rewritten.
-  - [ ] T1.7-10 An unknown `type` parses as `Unsupported` and its bytes are kept.
-  - [ ] T1.7-11 `rev` starts at 1 and an edit writes `rev` plus one.
-  - [ ] T1.7-12 `conflictOf` and `rotate` are optional and round-trip.
-  - [ ] T1.7-13 Invalid JSON, a missing `v`, and `v` not equal to 1 are rejected.
+  - [x] T1.7-01 A credential round-trips with all four fields.
+  - [x] T1.7-02 A secret note round-trips with name and content.
+  - [x] T1.7-03 An OTP round-trips with all fields and each algorithm (SHA1, SHA256, SHA512).
+  - [x] T1.7-04 An OTP with `digits` 5 or 9 is rejected.
+  - [x] T1.7-05 An OTP with both `period` and `counter` set is rejected.
+  - [x] T1.7-06 Padding brings the plaintext to a multiple of 512 bytes for lengths 1, 511, 512, 513 and 1000.
+  - [x] T1.7-07 Padding is trailing spaces and is ignored by the JSON parser.
+  - [x] T1.7-08 An entry larger than 1 MiB is rejected on write and on read.
+  - [x] T1.7-09 Unknown fields are preserved when an entry is parsed and rewritten.
+  - [x] T1.7-10 An unknown `type` parses as `Unsupported` and its bytes are kept.
+  - [x] T1.7-11 `rev` starts at 1 and an edit writes `rev` plus one.
+  - [x] T1.7-12 `conflictOf` and `rotate` are optional and round-trip.
+  - [x] T1.7-13 Invalid JSON, a missing `v`, and `v` not equal to 1 are rejected.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T1.7 entry plaintext format`
 
