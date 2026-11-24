@@ -50,8 +50,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T3.4 | Network error policy | T3.3 | GREEN | 5f46427 |
 | T3.5 | libgit2 for iOS spike | T3.4 | GREEN | 330e23a |
 | T4.1 | Device list model and devices.sig | T3.5 | GREEN | 9195a51 |
-| T4.2 | Chain verification | T4.1 | GREEN | |
-| T4.3 | Pin, rollback and fork | T4.2 | TODO | |
+| T4.2 | Chain verification | T4.1 | GREEN | 3ad522f |
+| T4.3 | Pin, rollback and fork | T4.2 | GREEN | |
 | T4.4 | Recipient set and encrypt guard | T4.3 | TODO | |
 | T5.1 | init | T4.4 | TODO | |
 | T5.2 | join request | T5.1 | TODO | |
@@ -468,14 +468,14 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** store `(storeId, version, hash)` in `trust.json`; reject lower versions (rollback) and same-version different bytes (fork).
 - **Spec:** 03 section 3.5 (rule 6); 02 device list and trust.
 - **Tests:**
-  - [ ] T4.3-01 No pin yet: any verified version is accepted and pinned.
-  - [ ] T4.3-02 A newer verified version replaces the pin.
-  - [ ] T4.3-03 A lower version fails with `rollback`.
-  - [ ] T4.3-04 The same version and the same hash is accepted.
-  - [ ] T4.3-05 The same version with a different hash fails with `fork` and raises a security alert.
-  - [ ] T4.3-06 `trust.json` is written atomically.
-  - [ ] T4.3-07 A corrupt `trust.json` refuses sync and asks the user (no silent reset).
-  - [ ] T4.3-08 `trust.json` cannot be read as a different store's pin (storeId mismatch fails).
+  - [x] T4.3-01 No pin yet: any verified version is accepted and pinned.
+  - [x] T4.3-02 A newer verified version replaces the pin.
+  - [x] T4.3-03 A lower version fails with `rollback`.
+  - [x] T4.3-04 The same version and the same hash is accepted.
+  - [x] T4.3-05 The same version with a different hash fails with `fork` and raises a security alert.
+  - [x] T4.3-06 `trust.json` is written atomically.
+  - [x] T4.3-07 A corrupt `trust.json` refuses sync and asks the user (no silent reset).
+  - [x] T4.3-08 `trust.json` cannot be read as a different store's pin (storeId mismatch fails).
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T4.3 pin, rollback and fork detection`
 

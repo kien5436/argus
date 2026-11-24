@@ -14,3 +14,4 @@ pub mod secure_storage;
 pub mod session;
 pub mod signatures;
 pub mod store;
+pub mod trust;
