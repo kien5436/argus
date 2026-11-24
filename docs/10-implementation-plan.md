@@ -38,7 +38,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.6 | crypto envelope and sealed recipients | T1.5 | GREEN | |
 | T1.7 | Entry plaintext format | T1.6 | GREEN | |
 | T1.8 | Entry signature | T1.7 | GREEN | |
-| T1.9 | Store layout and store.json | T1.8 | TODO | |
+| T1.9 | Store layout and store.json | T1.8 | GREEN | |
 | T1.10 | Data folder and permissions | T1.9 | TODO | |
 | T2.1 | device.key: create and open | T1.10 | TODO | |
 | T2.2 | Session and lax-time policy | T2.1 | TODO | |
@@ -274,12 +274,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** create and read the store layout in a directory; enforce the format rule.
 - **Spec:** 03 section 3.3 (the checkout is `.argus/`).
 - **Tests:**
-  - [ ] T1.9-01 A new store has `store.json`, `.gitattributes` with the exact content, and no subdirectories.
-  - [ ] T1.9-02 `store.json` has `format` 1 and a storeId of 26 characters.
-  - [ ] T1.9-03 `format` 2 is refused with `FormatUnsupported(2)`, and nothing is written.
-  - [ ] T1.9-04 A file not matching the known names or an `<id>.arg` pattern is ignored and not modified.
-  - [ ] T1.9-05 An entry file whose name is not a valid id is ignored.
-  - [ ] T1.9-06 A store root with `store.json` missing is reported as not a store.
+  - [x] T1.9-01 A new store has `store.json`, `.gitattributes` with the exact content, and no subdirectories.
+  - [x] T1.9-02 `store.json` has `format` 1 and a storeId of 26 characters.
+  - [x] T1.9-03 `format` 2 is refused with `FormatUnsupported(2)`, and nothing is written.
+  - [x] T1.9-04 A file not matching the known names or an `<id>.arg` pattern is ignored and not modified.
+  - [x] T1.9-05 An entry file whose name is not a valid id is ignored.
+  - [x] T1.9-06 A store root with `store.json` missing is reported as not a store.
 - **Green when:** G1 to G3, G5, G6.
 - **Commit:** `feat: T1.9 store layout and store.json`
 

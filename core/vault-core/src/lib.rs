@@ -5,3 +5,4 @@ pub mod envelope;
 pub mod identity;
 pub mod secrets;
 pub mod signatures;
+pub mod store;
