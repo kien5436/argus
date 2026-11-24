@@ -52,8 +52,8 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T4.1 | Device list model and devices.sig | T3.5 | GREEN | 9195a51 |
 | T4.2 | Chain verification | T4.1 | GREEN | 3ad522f |
 | T4.3 | Pin, rollback and fork | T4.2 | GREEN | feba8fe |
-| T4.4 | Recipient set and encrypt guard | T4.3 | GREEN | |
-| T5.1 | init | T4.4 | TODO | |
+| T4.4 | Recipient set and encrypt guard | T4.3 | GREEN | c4eb811 |
+| T5.1 | init | T4.4 | GREEN | |
 | T5.2 | join request | T5.1 | TODO | |
 | T5.3 | approve | T5.2 | TODO | |
 | T5.4 | verify anchor | T5.3 | TODO | |

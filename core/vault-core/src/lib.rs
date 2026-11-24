@@ -7,6 +7,7 @@ pub mod entry;
 pub mod envelope;
 pub mod git;
 pub mod identity;
+pub mod init;
 pub mod net_retry;
 pub mod recipients;
 pub mod remote;
