@@ -27,24 +27,24 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 
 | ID | Task | Depends on | Status | Commit |
 | --- | --- | --- | --- | --- |
-| T0.1 | Repository skeleton | none | GREEN | |
-| T0.2 | CI pipeline | T0.1 | GREEN | |
-| T0.3 | Spec sync check | T0.2 | DROPPED (owner decision 2026-11-23) | |
-| T1.1 | Canonical JSON | T0.2 | GREEN | |
-| T1.2 | Encodings and ids | T1.1 | GREEN | |
-| T1.3 | Domain-separated signatures (dryoc backend) | T1.2 | GREEN | |
-| T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | |
-| T1.5 | Secret types | T1.4 | GREEN | |
-| T1.6 | crypto envelope and sealed recipients | T1.5 | GREEN | |
-| T1.7 | Entry plaintext format | T1.6 | GREEN | |
-| T1.8 | Entry signature | T1.7 | GREEN | |
-| T1.9 | Store layout and store.json | T1.8 | GREEN | |
-| T1.10 | Data folder and permissions | T1.9 | GREEN | |
-| T2.1 | device.key: create and open | T1.10 | GREEN | |
-| T2.2 | Session and lax-time policy | T2.1 | GREEN | |
-| T2.3 | Master password change | T2.2 | GREEN | |
-| T2.4 | SecureStorage interface | T2.3 | GREEN | |
-| T3.1 | Local git operations (system git or libgit2) | T2.4 | TODO | |
+| T0.1 | Repository skeleton | none | GREEN | 9adbade |
+| T0.2 | CI pipeline | T0.1 | GREEN | 43056f5 |
+| T0.3 | Spec sync check | T0.2 | DROPPED (owner decision 2026-11-23) | 5c4971b |
+| T1.1 | Canonical JSON | T0.2 | GREEN | 925cabf |
+| T1.2 | Encodings and ids | T1.1 | GREEN | fadfdd0 |
+| T1.3 | Domain-separated signatures (dryoc backend) | T1.2 | GREEN | bcac6f9 |
+| T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | bcac6f9 |
+| T1.5 | Secret types | T1.4 | GREEN | a6d4a6f |
+| T1.6 | crypto envelope and sealed recipients | T1.5 | GREEN | f4c9084 |
+| T1.7 | Entry plaintext format | T1.6 | GREEN | 8366375 |
+| T1.8 | Entry signature | T1.7 | GREEN | 6d2b9c4 |
+| T1.9 | Store layout and store.json | T1.8 | GREEN | 19f579a |
+| T1.10 | Data folder and permissions | T1.9 | GREEN | 2cf0ae7 |
+| T2.1 | device.key: create and open | T1.10 | GREEN | 43133f2 |
+| T2.2 | Session and lax-time policy | T2.1 | GREEN | 5510d55 |
+| T2.3 | Master password change | T2.2 | GREEN | fd1da85 |
+| T2.4 | SecureStorage interface | T2.3 | GREEN | 006f680 |
+| T3.1 | Local git operations (system git or libgit2) | T2.4 | GREEN | |
 | T3.2 | Remote URLs, credentials, host keys | T3.1 | TODO | |
 | T3.3 | Fetch and push, refusal checks | T3.2 | TODO | |
 | T3.4 | Network error policy | T3.3 | TODO | |
@@ -360,16 +360,16 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** init a repo, stage files, commit with the configured author, read history. Uses the system `git` when available, otherwise libgit2. Both backends are tested with the same cases.
 - **Spec:** 01 architecture (git: system git or libgit2); 03 section 3.7 (author).
 - **Tests:**
-  - [ ] T3.1-01 Init creates a repository with the expected layout.
-  - [ ] T3.1-02 A commit uses the configured name and email as author.
-  - [ ] T3.1-03 Commit messages are passed through: `init` for a new store's first commit, `update` otherwise (03 section 3.7).
-  - [ ] T3.1-04 With `git` on `PATH`, the system backend is used (checked with a test hook that reports the backend).
-  - [ ] T3.1-05 With `git` absent from `PATH` (test with an empty `PATH`), the libgit2 backend is used and every T3.1 case still passes.
-  - [ ] T3.1-06 Both backends produce identical commits and refs for the same input (same tree hash and commit contents, except the commit time).
-  - [ ] T3.1-07 No secret appears in any `git` argument or environment variable (checked by a test that records the invocation).
-  - [ ] T3.1-08 Reading history returns commits in order.
-  - [ ] T3.1-09 A commit with no changes is refused or skipped (decision recorded).
-  - [ ] T3.1-10 Missing author configuration is refused.
+  - [x] T3.1-01 Init creates a repository with the expected layout.
+  - [x] T3.1-02 A commit uses the configured name and email as author.
+  - [x] T3.1-03 Commit messages are passed through: `init` for a new store's first commit, `update` otherwise (03 section 3.7).
+  - [x] T3.1-04 With `git` on `PATH`, the system backend is used (checked with a test hook that reports the backend).
+  - [x] T3.1-05 With `git` absent from `PATH` (test with an empty `PATH`), the libgit2 backend is used and every T3.1 case still passes.
+  - [x] T3.1-06 Both backends produce identical commits and refs for the same input (same tree hash and commit contents, except the commit time).
+  - [x] T3.1-07 No secret appears in any `git` argument or environment variable (checked by a test that records the invocation).
+  - [x] T3.1-08 Reading history returns commits in order.
+  - [x] T3.1-09 A commit with no changes is refused or skipped (decision recorded).
+  - [x] T3.1-10 Missing author configuration is refused.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T3.1 local git operations`
 

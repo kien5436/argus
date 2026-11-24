@@ -4,6 +4,7 @@ pub mod device_key;
 pub mod encodings;
 pub mod entry;
 pub mod envelope;
+pub mod git;
 pub mod identity;
 pub mod secrets;
 pub mod secure_storage;
