@@ -42,7 +42,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.10 | Data folder and permissions | T1.9 | GREEN | |
 | T2.1 | device.key: create and open | T1.10 | GREEN | |
 | T2.2 | Session and lax-time policy | T2.1 | GREEN | |
-| T2.3 | Master password change | T2.2 | TODO | |
+| T2.3 | Master password change | T2.2 | GREEN | |
 | T2.4 | SecureStorage interface | T2.3 | TODO | |
 | T3.1 | Local git operations (system git or libgit2) | T2.4 | TODO | |
 | T3.2 | Remote URLs, credentials, host keys | T3.1 | TODO | |
@@ -333,12 +333,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** change the master password by rewriting only `device.key`.
 - **Spec:** 02 master password; 06 `passwd`.
 - **Tests:**
-  - [ ] T2.3-01 After a change, the new password opens `device.key`.
-  - [ ] T2.3-02 The old password fails.
-  - [ ] T2.3-03 The keys are the same before and after.
-  - [ ] T2.3-04 The git tree and every store file are byte-identical before and after.
-  - [ ] T2.3-05 A failure midway leaves the old `device.key` intact (atomic write: temp file, then rename).
-  - [ ] T2.3-06 A new salt is used on each change.
+  - [x] T2.3-01 After a change, the new password opens `device.key`.
+  - [x] T2.3-02 The old password fails.
+  - [x] T2.3-03 The keys are the same before and after.
+  - [x] T2.3-04 The git tree and every store file are byte-identical before and after.
+  - [x] T2.3-05 A failure midway leaves the old `device.key` intact (atomic write: temp file, then rename).
+  - [x] T2.3-06 A new salt is used on each change.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T2.3 master password change`
 
