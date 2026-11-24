@@ -40,7 +40,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.8 | Entry signature | T1.7 | GREEN | |
 | T1.9 | Store layout and store.json | T1.8 | GREEN | |
 | T1.10 | Data folder and permissions | T1.9 | GREEN | |
-| T2.1 | device.key: create and open | T1.10 | TODO | |
+| T2.1 | device.key: create and open | T1.10 | GREEN | |
 | T2.2 | Session and lax-time policy | T2.1 | TODO | |
 | T2.3 | Master password change | T2.2 | TODO | |
 | T2.4 | SecureStorage interface | T2.3 | TODO | |
@@ -299,18 +299,18 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 ### Phase 2: keys and session
 
 #### T2.1 device.key: create and open
-- **Feature:** generate both keypairs and store them in `device.key`, an Argon2id-encrypted envelope with opslimit = 3 and memlimit = 256 MiB; fall back to opslimit = 2 and memlimit = 64 MiB if 256 MiB cannot be allocated.
+- **Feature:** generate both keypairs and store them in `device.key`, an Argon2id-encrypted envelope with opslimit = 3 and memlimit = 256 MiB; fall back to opslimit = 3 and memlimit = 64 MiB if 256 MiB cannot be allocated.
 - **Spec:** 02 (device keys; master password and unlock); 03 section 3.6.
 - **Tests:**
-  - [ ] T2.1-01 Creating a device writes `device.key`; reopening it with the right password returns the same keys.
-  - [ ] T2.1-02 The wrong password fails with `WrongPassword`.
-  - [ ] T2.1-03 A flipped byte in `device.key` fails with an error, not a wrong key.
-  - [ ] T2.1-04 The Argon2id parameters in the header are opslimit 3 and memlimit 256 MiB.
-  - [ ] T2.1-05 Allocation failure at 256 MiB falls back to 64 MiB and the header records opslimit 2 and memlimit 64 MiB.
-  - [ ] T2.1-06 An empty master password is refused.
-  - [ ] T2.1-07 Passwords with Unicode (including emoji and combining characters) round-trip.
-  - [ ] T2.1-08 `deviceId`, `encSecret` and `signSeed` are the only fields in the plaintext; the JSON shape matches 03 section 3.6.
-  - [ ] T2.1-09 Two devices created in a row have different keys.
+  - [x] T2.1-01 Creating a device writes `device.key`; reopening it with the right password returns the same keys.
+  - [x] T2.1-02 The wrong password fails with `WrongPassword`.
+  - [x] T2.1-03 A flipped byte in `device.key` fails with an error, not a wrong key.
+  - [x] T2.1-04 The Argon2id parameters in the header are opslimit 3 and memlimit 256 MiB.
+  - [x] T2.1-05 Allocation failure at 256 MiB falls back to 64 MiB and the header records opslimit 3 and memlimit 64 MiB.
+  - [x] T2.1-06 An empty master password is refused.
+  - [x] T2.1-07 Passwords with Unicode (including emoji and combining characters) round-trip.
+  - [x] T2.1-08 `deviceId`, `encSecret` and `signSeed` are the only fields in the plaintext; the JSON shape matches 03 section 3.6.
+  - [x] T2.1-09 Two devices created in a row have different keys.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T2.1 device.key create and open`
 
