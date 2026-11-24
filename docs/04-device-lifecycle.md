@@ -18,7 +18,7 @@ The remote MUST be empty. If it has files but no `store.json` at the root, init 
 {
   "v": 1,
   "storeId": "<id>",
-  "device": { "id": "<id>", "name": "iPhone", "age": "age1...", "sign": "<b64u>" },
+  "device": { "id": "<id>", "name": "iPhone", "enc": "argus1...", "sign": "<b64u>" },
   "created": "2026-11-19T09:00:00Z",
   "sig": "<b64u>"
 }
@@ -34,7 +34,7 @@ The remote MUST be empty. If it has files but no `store.json` at the root, init 
 1. Pull and verify the device list. List pending requests whose store id and self-signature are valid.
 2. The user picks a request and compares the fingerprint with the new device's screen (scan the QR, or compare the 8 groups). Nothing proceeds without this confirmation.
 3. Build list version n+1: add the device with `addedBy` set to this device and `prev` set to the hash of version n. Sign it.
-4. For each entry, add the new recipient by rewriting only the age header: unwrap the file key with this device's key, add a stanza for the new recipient, recompute the header MAC. Payloads are unchanged. If the age library cannot do this, fall back to full re-encryption.
+4. For each entry, add the new recipient by sealing the existing file key to the new device and appending the sealed key, bumping `rcount` (03 section 3.4). The nonce, payload and file key are unchanged.
 5. Delete the pending file. Commit once as `update`, containing `devices.json`, `devices.sig`, every entry change and the removed pending file. Push. If the push is rejected: pull, verify, and redo from step 3 on top of the new state. Device lists are never merged automatically.
 6. Show the anchor (see `03-store-format.md`), as 8 hex groups and a QR code.
 
@@ -50,7 +50,7 @@ The fingerprint protects against a fake request (someone with write access to th
 ## 4.5 revoke (trusted device)
 
 1. Build list version n+1 without the device. Sign it.
-2. Decrypt every entry and encrypt it again with a fresh file key to the remaining devices. Re-sign each entry. Set its rotate flag. Header-only rewrites are not enough, because the revoked device may have kept file keys.
+2. Decrypt every entry and encrypt it again with a fresh file key to the remaining devices. Re-sign each entry. Set its rotate flag. Sealed-key appends are not enough, because the revoked device may have kept file keys.
 3. Commit once as `update`. Push.
 4. Remote cleanup:
    - GitHub (v1): Argus removes the device's deploy key with the GitHub API, using a token from the user's own GitHub App (repository `Administration: write`). The App's installation token is created from the App's private key, which is stored in the Keychain of the device that set it up. Other devices show the manual steps. After the revoke, Argus shows the manual steps to rotate the GitHub App's private key.
@@ -61,7 +61,7 @@ A revoked device that pulls and finds itself missing from the list stops syncing
 
 ## 4.6 reconcile
 
-After every pull, a trusted device compares each entry's count of X25519 recipient stanzas with the number of devices in the verified list (count only X25519 stanzas). On a mismatch it repairs the entry: a header rewrite for a missing recipient, full re-encryption for an extra one. This catches entries written by a device that had not seen the newest list.
+After every pull, a trusted device compares each entry's `rcount` (number of sealed file keys) with the number of devices in the verified list. On a mismatch it repairs the entry: a sealed-key append for a missing recipient, full re-encryption for an extra one. This catches entries written by a device that had not seen the newest list.
 
 ## 4.7 concurrent device-list changes
 

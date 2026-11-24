@@ -2,13 +2,13 @@
 
 ## Required test categories
 
-1. **Interop**: the core encrypts entries with the age Rust crate and decrypts them again; entries written by the age crate in the test suite decrypt through Argus. Cross-check in CI with the Go age CLI, an independent implementation, so a bug in the crate's format handling is still caught.
+1. **Interop**: the core encrypts and decrypts entries with dryoc; vectors written by dryoc decrypt through the C libsodium (via `libsodium-sys-stable`) in CI, and vice versa, an independent implementation, so a format bug in either is still caught.
 2. **Canonical JSON and hashing**: device list and entry signing inputs match vectors.
 3. **Device list chain**: valid chains of versions 1 to 3; invalid chains for: wrong `prev`, signer not in the previous version, self-added device, lower version (rollback), same version with different bytes (fork), empty device list.
 4. **Fingerprints and anchors**: fixed keys produce fixed fingerprints and anchors.
 5. **Join request**: a request verifies only with its own self-signature.
-6. **Header-only recipient addition**: an added recipient can decrypt, and the payload still decrypts for the original recipients after the header is rewritten.
-7. **Reconcile**: a stanza-count mismatch is repaired in both directions.
+6. **Sealed-recipient addition**: an added recipient can decrypt, and the payload still decrypts for the original recipients after a sealed key is appended (the nonce, payload and file key are unchanged).
+7. **Reconcile**: an `rcount` mismatch is repaired in both directions.
 8. **Conflicts**: ordering by git history, not by `rev` or timestamps; older versions become conflict copies; sync is blocked until resolved.
 9. **Revoke**: all entries re-encrypted, re-signed, rotate flags set; revoked device cannot decrypt new entries.
 10. **Search**: fuzzy ranking; exact match preferred; single fuzzy match auto-selected; picker used otherwise; reserved names rejected.
@@ -27,11 +27,11 @@
 
 ## Vectors to produce (milestone 1)
 
-- One entry encrypted with the `age` crate and decrypted by the Go `age` CLI, with its signature.
+- One entry encrypted with dryoc and decrypted by the C libsodium reference, with its signature.
 - Canonical JSON and hashes for a device list.
 - A valid chain of three versions, plus each invalid case above.
 - Fingerprints and an anchor from fixed keys.
 - A join request and its signature.
-- A header-only recipient addition, decryptable by the `age` crate and by the Go `age` CLI.
+- A sealed-recipient addition, decryptable by dryoc and by the C libsodium reference.
 
 Vectors live in `core/vault-core/tests/vectors/`. They are generated from fixed seeds by the Rust core. Run `cargo test` in `core/`.

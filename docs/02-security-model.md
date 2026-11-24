@@ -8,17 +8,17 @@ The repository is encrypted to public keys, as in `pass`. Each device holds a pr
 
 Each device generates two keypairs at setup:
 
-- An age X25519 keypair. Used to decrypt entries.
+- An X25519 keypair (`crypto_box` in the dryoc library). Used to decrypt entries.
 - An Ed25519 signing keypair. Used to sign the device list and each entry.
 
 Both private keys are stored in `device.key` in the data folder, encrypted with the master password (see below). Only public keys are shared, via the repository.
 
 ## Master password and unlock
 
-- The master password protects `device.key` through age passphrase mode (scrypt).
-- Parameters: log2(N) = 18, r = 8, p = 1. If the device cannot allocate about 256 MiB, use log2(N) = 17 (about 128 MiB). The parameter is stored in the file header.
+- The master password protects `device.key` through Argon2id (`crypto_pwhash` in dryoc), which derives a 32-byte key that encrypts the device keys.
+- Parameters: Argon2id with opslimit = 3 and memlimit = 256 MiB. If the device cannot allocate 256 MiB, reduce opslimit to 2. The salt and both parameters are stored in the file header.
 - Target: about one second on the slowest supported device.
-- Changing the master password rewrites only `device.key`, with a new passphrase and salt. Nothing in git changes.
+- Changing the master password rewrites only `device.key`, with a new passphrase, salt and nonce. Nothing in git changes.
 - The master password is never stored, never synced, and never written to the repository.
 - Strength is estimated at setup and shown for information. It never blocks.
 
@@ -80,6 +80,7 @@ Out of scope for v1:
 - **Search index in memory.** The index of decrypted names and URLs is a sensitive structure. It is memory-only and dropped on lock, but it is not yet protected. Hardening is planned.
 - **Swift strings are not zeroable.** Passwords that reach SwiftUI text fields leave copies that cannot be wiped. Keep plaintext lifetimes short and pass bytes where possible.
 - **GitHub App private key.** It can manage deploy keys on the store repository. It lives in the Keychain of the device that set it up. Compromise of that device exposes the ability to change the repository's deploy keys. After each revoke, Argus rotates the App's private key.
+- **Crypto library.** The core uses dryoc, a pure-Rust, libsodium-compatible library with a smaller audit history than the C libsodium. Its wire formats are cross-tested against the C libsodium in CI. Every crypto call goes through one wrapper module, so the backend can be swapped later without touching callers. Accepted for v1.
 
 ## Invariants for implementers
 

@@ -39,7 +39,7 @@ Specified so the v1 design leaves room for them. Do not implement in v1. Where v
 
 - Credential provider extension for passwords (iOS 12+), passkeys in third-party providers (iOS 17+), and OTP codes in the credential provider (iOS 18+; macOS 15 equivalent). Because the minimum iOS version is 16, passkey and OTP AutoFill degrade to copy and paste there.
 - The extension needs low memory and no UI beyond system sheets. It needs the data folder moved to an App Group container. v1 must keep the data folder path behind the platform layer so this move is possible.
-- It cannot run scrypt (memory limit). It needs the biometric-cached key, so it depends on the biometric feature.
+- It cannot run Argon2id at the full memory limit. It needs the biometric-cached key, so it depends on the biometric feature.
 
 ## Other
 

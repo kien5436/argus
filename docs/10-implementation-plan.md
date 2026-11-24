@@ -33,9 +33,9 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T1.1 | Canonical JSON | T0.2 | GREEN | |
 | T1.2 | Encodings and ids | T1.1 | GREEN | |
 | T1.3 | Domain-separated signatures | T1.2 | GREEN | |
-| T1.4 | Recipients, fingerprints, anchors | T1.3 | GREEN | |
+| T1.4 | Recipients, fingerprints, anchors | T1.3 | TODO | |
 | T1.5 | Secret types | T1.4 | GREEN | |
-| T1.6 | age wrapper and header spike | T1.5 | TODO | |
+| T1.6 | crypto envelope and sealed recipients | T1.5 | TODO | |
 | T1.7 | Entry plaintext format | T1.6 | TODO | |
 | T1.8 | Entry signature | T1.7 | TODO | |
 | T1.9 | Store layout and store.json | T1.8 | TODO | |
@@ -103,7 +103,7 @@ Status values: TODO, IN PROGRESS, GREEN, BLOCKED. Fill in the commit hash when g
 | T10.1 | Fuzzing | T9.10 | TODO | |
 | T10.2 | Log audit | T10.1 | TODO | |
 | T10.3 | Limits and performance | T10.2 | TODO | |
-| T10.4 | scrypt benchmark and fallback | T10.3 | TODO | |
+| T10.4 | Argon2id benchmark and fallback | T10.3 | TODO | |
 | T10.5 | Format migration | T10.4 | TODO | |
 | T10.6 | Build from source instructions | T10.5 | TODO | |
 | T10.7 | External security review | T10.6 | BLOCKED (external) | |
@@ -122,7 +122,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Tests:**
   - [x] T0.1-01 `cargo build --workspace` succeeds on an empty workspace.
   - [x] T0.1-02 `.gitignore` excludes a file named `device.key` placed in the repo root.
-  - [x] T0.1-03 No secret-like file (`*.key`, `*.age`) is tracked.
+  - [x] T0.1-03 No secret-like file (`*.key`, `*.arg`) is tracked.
 - **Green when:** G2, G6.
 - **Commit:** `chore: T0.1 repository skeleton`
 
@@ -186,21 +186,21 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Commit:** `feat: T1.3 domain-separated Ed25519 signatures`
 
 #### T1.4 Recipients, fingerprints, anchors
-- **Feature:** parse and print `age1...` recipients (bech32), compute device fingerprints, format and parse anchors.
+- **Feature:** encode and parse `argus1...` recipient keys (bech32m, BIP-350), compute device fingerprints, format and parse anchors.
 - **Spec:** 03 sections 3.5 (Fingerprint, Anchor) and 4.4. Anchor input is not case-sensitive and ignores spaces.
 - **Tests:**
-  - [x] T1.4-01 bech32 matches the BIP-173 vector `a12uel5l`.
-  - [x] T1.4-02 A valid recipient round-trips to the same string and is 62 characters long.
-  - [x] T1.4-03 A recipient with a bad checksum is rejected.
-  - [x] T1.4-04 A recipient with the wrong prefix (not `age`) is rejected.
-  - [x] T1.4-05 A recipient with a bad character is rejected.
-  - [x] T1.4-06 Fingerprint equals SHA-256 of `argus-device-v1\n` + Ed25519 key + X25519 key, for fixed keys.
-  - [x] T1.4-07 Fingerprint display is 8 groups of 4 lowercase hex characters from the first 16 bytes.
-  - [x] T1.4-08 Anchor is `v<version>` followed by 8 groups from the first 16 bytes of SHA-256 of the file bytes.
-  - [x] T1.4-09 Anchor parse accepts the canonical form.
-  - [x] T1.4-10 Anchor parse ignores case and spaces (03 section 3.5).
-  - [x] T1.4-11 Anchor with a non-hex group, a missing group, or a version of 0 is rejected.
-  - [x] T1.4-12 Fingerprint and anchor vectors match `core/vault-core/tests/vectors/`.
+  - [ ] T1.4-01 bech32m matches the BIP-350 vectors; the BIP-173 vector `a12uel5l` (original bech32) is rejected for the `argus` prefix.
+  - [ ] T1.4-02 A valid recipient round-trips to the same string and is 64 characters long.
+  - [ ] T1.4-03 A recipient with a bad checksum is rejected.
+  - [ ] T1.4-04 A recipient with the wrong prefix (not `argus`) is rejected.
+  - [ ] T1.4-05 A recipient with a bad character is rejected.
+  - [ ] T1.4-06 Fingerprint equals SHA-256 of `argus-device-v1\n` + Ed25519 key + X25519 key (the raw 32 bytes), for fixed keys.
+  - [ ] T1.4-07 Fingerprint display is 8 groups of 4 lowercase hex characters from the first 16 bytes.
+  - [ ] T1.4-08 Anchor is `v<version>` followed by 8 groups from the first 16 bytes of SHA-256 of the file bytes.
+  - [ ] T1.4-09 Anchor parse accepts the canonical form.
+  - [ ] T1.4-10 Anchor parse ignores case and spaces (03 section 3.5).
+  - [ ] T1.4-11 Anchor with a non-hex group, a missing group, or a version of 0 is rejected.
+  - [ ] T1.4-12 Fingerprint and anchor vectors match `core/vault-core/tests/vectors/`.
 - **Green when:** G1 to G3, G6.
 - **Commit:** `feat: T1.4 recipients, fingerprints, anchors`
 
@@ -217,23 +217,24 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T1.5 secret types`
 
-#### T1.6 age wrapper and header spike
-- **Feature:** encrypt to a set of recipients, decrypt with an identity, using the `age` crate. Spike whether a recipient can be added by rewriting only the header (for T5.3). Record the answer in the commit message and in the tests.
-- **Spec:** 03 section 3.2; 04 section 4.3 (fallback); 08 test 6.
+#### T1.6 crypto envelope and sealed recipients
+- **Feature:** implement the entry envelope (03 section 3.4) with dryoc: XSalsa20-Poly1305 `secretbox` under a random file key, the file key sealed to each recipient with `crypto_box_seal`. Adding a recipient appends a sealed key without touching the payload.
+- **Spec:** 03 sections 3.2 and 3.4; 04 section 4.3; 08 test 6.
 - **Tests:**
   - [ ] T1.6-01 Encrypt then decrypt with one recipient returns the same bytes.
   - [ ] T1.6-02 Encrypt to two recipients; either identity decrypts.
   - [ ] T1.6-03 Decrypt with an identity not in the recipient set fails.
-  - [ ] T1.6-04 A flipped byte in the header fails authentication.
+  - [ ] T1.6-04 A flipped byte in the magic, version, `plen` or `rcount` fails.
   - [ ] T1.6-05 A flipped byte in the payload fails authentication.
   - [ ] T1.6-06 Empty plaintext round-trips.
   - [ ] T1.6-07 A 1 MiB plaintext round-trips.
   - [ ] T1.6-08 Truncated ciphertext fails.
-  - [ ] T1.6-09 Spike: adding a recipient by header rewrite is tested. Outcome recorded: supported (use it) or not supported (use full re-encryption for T5.3, per 04 section 4.3).
-  - [ ] T1.6-10 If the spike succeeds: the original recipient still decrypts the payload after the header rewrite.
-  - [ ] T1.6-11 Cross-check: a file written by the crate is decrypted by the Go `age` CLI in the CI job (required once T0.2 runs it).
-- **Green when:** G1 to G3, G6, and T1.6-11 passes in CI.
-- **Commit:** `feat: T1.6 age wrapper and header rewrite spike`
+  - [ ] T1.6-09 `plen` is a multiple of 512 and at most 1,048,576; otherwise the entry is damaged.
+  - [ ] T1.6-10 Adding a recipient by appending a sealed key: the new device decrypts, and the original recipients still decrypt (nonce, `plen`, payload and file key unchanged).
+  - [ ] T1.6-11 `rcount` equals the number of sealed keys; a mismatch marks the entry damaged (T6.4).
+  - [ ] T1.6-12 Cross-check: a file written by dryoc decrypts through the C libsodium in CI, and vice versa (required once T0.2 runs it).
+- **Green when:** G1 to G3, G6, and T1.6-12 passes in CI.
+- **Commit:** `feat: T1.6 crypto envelope and sealed recipients`
 
 #### T1.7 Entry plaintext format
 - **Feature:** serialise and parse the three entry types with the padding rule.
@@ -297,17 +298,17 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 ### Phase 2: keys and session
 
 #### T2.1 device.key: create and open
-- **Feature:** generate both keypairs and store them in `device.key`, an age passphrase file with scrypt log2(N) = 18, r = 8, p = 1; fall back to 17 if 18 cannot be allocated.
+- **Feature:** generate both keypairs and store them in `device.key`, an Argon2id-encrypted envelope with opslimit = 3 and memlimit = 256 MiB; fall back to opslimit = 2 and memlimit = 64 MiB if 256 MiB cannot be allocated.
 - **Spec:** 02 (device keys; master password and unlock); 03 section 3.6.
 - **Tests:**
   - [ ] T2.1-01 Creating a device writes `device.key`; reopening it with the right password returns the same keys.
   - [ ] T2.1-02 The wrong password fails with `WrongPassword`.
   - [ ] T2.1-03 A flipped byte in `device.key` fails with an error, not a wrong key.
-  - [ ] T2.1-04 The scrypt parameters in the header are log2(N) 18, r 8, p 1.
-  - [ ] T2.1-05 Allocation failure at 18 falls back to 17 and the header records 17.
+  - [ ] T2.1-04 The Argon2id parameters in the header are opslimit 3 and memlimit 256 MiB.
+  - [ ] T2.1-05 Allocation failure at 256 MiB falls back to 64 MiB and the header records opslimit 2 and memlimit 64 MiB.
   - [ ] T2.1-06 An empty master password is refused.
   - [ ] T2.1-07 Passwords with Unicode (including emoji and combining characters) round-trip.
-  - [ ] T2.1-08 `deviceId`, `ageSecret` and `signSeed` are the only fields in the plaintext; the JSON shape matches 03 section 3.6.
+  - [ ] T2.1-08 `deviceId`, `encSecret` and `signSeed` are the only fields in the plaintext; the JSON shape matches 03 section 3.6.
   - [ ] T2.1-09 Two devices created in a row have different keys.
 - **Green when:** G1 to G4, G6.
 - **Commit:** `feat: T2.1 device.key create and open`
@@ -520,7 +521,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 
 #### T5.3 approve
 - **Feature:** a trusted device lists valid pending requests, requires fingerprint confirmation, adds the device to a new signed list, adds the new recipient to every entry, commits once, pushes, and shows the anchor.
-- **Spec:** 04 section 4.3; T1.6 outcome decides header rewrite or full re-encryption.
+- **Spec:** 04 section 4.3; T1.6 sealed-recipient addition.
 - **Tests:**
   - [ ] T5.3-01 Listing returns only requests with a valid self-signature for the same store id.
   - [ ] T5.3-02 Approve without a confirmed fingerprint is refused.
@@ -530,7 +531,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
   - [ ] T5.3-06 Pending file is removed in the same commit.
   - [ ] T5.3-07 A rejected push triggers pull, verify and redo from the list step; lists are never merged.
   - [ ] T5.3-08 The anchor shown equals the one the new device will compute.
-  - [ ] T5.3-09 If the header rewrite is unsupported (T1.6), full re-encryption produces the same visible result.
+  - [ ] T5.3-09 Adding a recipient appends a sealed key; the payload and file key are unchanged (checked by comparing bytes before and after).
   - [ ] T5.3-10 Approving a device already in the list is refused.
   - [ ] T5.3-11 The approve commit's message is `update`.
 - **Green when:** G1 to G4, G6.
@@ -550,12 +551,12 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Commit:** `feat: T5.4 verify anchor`
 
 #### T5.5 reconcile
-- **Feature:** after each pull, count X25519 recipient stanzas per entry and repair mismatches.
+- **Feature:** after each pull, compare each entry's `rcount` (sealed file keys) with the number of verified devices and repair mismatches.
 - **Spec:** 04 section 4.6.
 - **Tests:**
-  - [ ] T5.5-01 An entry missing one recipient is repaired by adding it.
+  - [ ] T5.5-01 An entry missing one recipient is repaired by sealing the file key to it (append, payload unchanged).
   - [ ] T5.5-02 An entry with an extra recipient is repaired by full re-encryption.
-  - [ ] T5.5-03 Only X25519 stanzas are counted; a placeholder stanza of another type is ignored.
+  - [ ] T5.5-03 A sealed key that no verified device can open is treated as an extra recipient.
   - [ ] T5.5-04 Repaired entries are committed in one commit.
   - [ ] T5.5-05 A repair failure leaves the entry unchanged and reports it.
 - **Green when:** G1 to G4, G6.
@@ -578,7 +579,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** store operations on entries: create with a random id, read with decryption on demand, update with `rev` plus one, delete with `git rm`.
 - **Spec:** 03 section 3.4; 01 core API (`get`, `put`, `delete`).
 - **Tests:**
-  - [ ] T6.1-01 Create writes `<id>.arg` with the expected header and no metadata in the file name.
+  - [ ] T6.1-01 Create writes `<id>.arg` with the expected envelope and no metadata in the file name.
   - [ ] T6.1-02 Read returns the same plaintext that was written.
   - [ ] T6.1-03 Update increments `rev` by one and changes `updated`.
   - [ ] T6.1-04 Delete removes the file; the old ciphertext remains in history.
@@ -624,7 +625,7 @@ Each task gives its feature, its spec reference, its test cases, and its green c
 - **Feature:** entries that cannot be read, whose id does not match the file name, or whose signature is invalid are listed as damaged and never deleted automatically.
 - **Spec:** 04 section 4.8; 03 section 3.4 (entry signature).
 - **Tests:**
-  - [ ] T6.4-01 A file with a corrupt age header is listed as damaged.
+  - [ ] T6.4-01 A file with a corrupt envelope (bad magic, version, or length) is listed as damaged.
   - [ ] T6.4-02 An id that does not match the file name is damaged.
   - [ ] T6.4-03 An entry whose signer is not in the current list is refused with a security alert and is not marked damaged (03 section 3.4).
   - [ ] T6.4-04 Damaged entries are never deleted by any operation (test each operation).
@@ -1208,16 +1209,16 @@ Apps use the same core through UniFFI. Each screen task names its wireframe sect
 - **Green when:** G1 to G3, performance tests pass on the reference runner, G6. If a target is missed, the task is BLOCKED and the owner decides.
 - **Commit:** `chore: T10.3 limits and performance`
 
-#### T10.4 scrypt benchmark and fallback
-- **Feature:** measure scrypt at log2(N) 18 and 17 on the reference devices; confirm the parameters fit the memory limit.
+#### T10.4 Argon2id benchmark and fallback
+- **Feature:** measure Argon2id at opslimit 3 / memlimit 256 MiB and the 2 / 64 MiB fallback on the reference devices; confirm the parameters fit the memory limit.
 - **Spec:** 02 master password and unlock; 03 section 3.2.
 - **Tests:**
-  - [ ] T10.4-01 log2(N) 18 takes about one second on the reference Mac (recorded).
-  - [ ] T10.4-02 log2(N) 18 takes about one second on the reference iPhone (recorded).
-  - [ ] T10.4-03 The fallback to 17 triggers on a device that cannot allocate 256 MiB (simulated).
-  - [ ] T10.4-04 The app does not exceed its memory limit at 18 on the reference iPhone.
-- **Green when:** G6, measurements recorded. If the iPhone cannot run 18, the owner decides.
-- **Commit:** `chore: T10.4 scrypt benchmark and fallback`
+  - [ ] T10.4-01 opslimit 3 / 256 MiB takes about one second on the reference Mac (recorded).
+  - [ ] T10.4-02 opslimit 3 / 256 MiB takes about one second on the reference iPhone (recorded).
+  - [ ] T10.4-03 The fallback to opslimit 2 / 64 MiB triggers on a device that cannot allocate 256 MiB (simulated).
+  - [ ] T10.4-04 The app does not exceed its memory limit at 256 MiB on the reference iPhone.
+- **Green when:** G6, measurements recorded. If the iPhone cannot run 256 MiB, the owner decides.
+- **Commit:** `chore: T10.4 Argon2id benchmark and fallback`
 
 #### T10.5 Format migration
 - **Feature:** `argus migrate` for a breaking format change: back up, rewrite, commit once as `update`, push; a failure leaves the backup and an unchanged remote.

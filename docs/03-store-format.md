@@ -5,6 +5,7 @@
 - Text is UTF-8. Times are RFC 3339 in UTC.
 - **id**: 128 random bits from the OS secure random source, written as lowercase base32 (RFC 4648 alphabet, no padding, 26 characters).
 - **b64u**: base64url without padding.
+- **recipient key**: a 32-byte X25519 public key encoded with bech32m (BIP-350), human-readable part `argus`.
 - **hash**: SHA-256, lowercase hex unless noted.
 - **Canonical JSON**: RFC 8785 (JCS). Any JSON that is hashed or signed is first canonicalised.
 - **Domain prefix**: every signature and the device fingerprint hash cover a fixed ASCII prefix followed by a newline (byte 0x0A). For example, the devices signature covers the bytes `argus-devices-v1\n` followed by the canonical JSON. Prefixes are: `argus-entry-v1`, `argus-devices-v1`, `argus-device-v1` (fingerprints), `argus-join-v1`.
@@ -13,9 +14,9 @@
 
 | Purpose | Choice |
 | --- | --- |
-| Entry encryption | age v1, X25519 recipients, binary (not armored) |
-| Device key protection | age passphrase mode (scrypt), log2(N) = 18 (17 fallback), r = 8, p = 1 |
-| Signatures | Ed25519 |
+| Entry encryption | libsodium-compatible envelope (dryoc): XSalsa20-Poly1305 `secretbox` under a random file key, the file key sealed per recipient with `crypto_box_seal` (X25519) |
+| Device key protection | Argon2id (`crypto_pwhash`), opslimit = 3, memlimit = 256 MiB (64 MiB fallback) |
+| Signatures | Ed25519 (`crypto_sign`) |
 | Hashes | SHA-256 |
 | Canonical JSON | RFC 8785 |
 
@@ -41,7 +42,7 @@ The store is the git repository itself. Its checkout lives in the data folder as
 
 ## 3.4 Entry file
 
-Each `<entry-id>.arg` is an age file encrypted to every device in the newest verified device list. Its plaintext is one JSON object, padded as described below:
+Each `<entry-id>.arg` is an encrypted envelope addressed to every device in the newest verified device list. Its plaintext is one JSON object, padded as described below. The envelope holds one file key: the payload is encrypted with that key, and the key itself is sealed once per recipient. Adding a recipient rewrites only the sealed keys and their count, never the payload.
 
 ```json
 {
@@ -60,6 +61,24 @@ Each `<entry-id>.arg` is an age file encrypted to every device in the newest ver
   "sig": { "by": "<device-id>", "v": "<b64u>" }
 }
 ```
+
+### Envelope
+
+The ciphertext file is a self-describing binary envelope. All integers are big-endian.
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 6 | magic, the bytes `41 52 47 55 53 01` (`ARGUS\x01`) |
+| 6 | 1 | envelope version, `0x01` |
+| 7 | 4 | `plen`, u32: length of the padded plaintext, a multiple of 512 and at most 1,048,576 |
+| 11 | 24 | nonce for the payload `secretbox` |
+| 35 | `plen` + 16 | ciphertext of the padded plaintext plus the 16-byte Poly1305 tag |
+| 35 + `plen` + 16 | 2 | `rcount`, u16: number of recipients |
+| 37 + `plen` + 16 | `rcount` × 80 | one `crypto_box_seal` of the file key per recipient, in device-list order |
+
+Encryption: a random 32-byte file key and a random 24-byte nonce are generated from the OS secure random source. The padded plaintext is encrypted with `secretbox` (XSalsa20-Poly1305) under the file key. The file key is sealed to each recipient's X25519 public key with `crypto_box_seal`, 80 bytes per recipient (ephemeral public key, ciphertext, tag). The recipient order follows the device list; a reader finds its sealed key by its own index.
+
+To add a recipient (approve, reconcile repair), the writer seals the existing file key to the new device and appends it, bumping `rcount`. The nonce, payload and file key are unchanged. To remove a recipient (revoke), the writer re-encrypts with a fresh file key to the remaining devices (04 section 4.5).
 
 ### Types and data fields
 
@@ -81,7 +100,7 @@ Each `<entry-id>.arg` is an age file encrypted to every device in the newest ver
 
 ### Entry signature
 
-`sig` is an Ed25519 signature by one device over the canonical JSON of the entry without `sig`, prefixed with `argus-entry-v1`. A client accepts an entry only if the signer is in the current verified device list. Header-only recipient changes leave the payload unchanged, so signatures stay valid. A revoke re-signs every entry.
+`sig` is an Ed25519 signature by one device over the canonical JSON of the entry without `sig`, prefixed with `argus-entry-v1`. A client accepts an entry only if the signer is in the current verified device list. Sealed-recipient changes leave the payload (and therefore the signed plaintext) unchanged, so signatures stay valid. A revoke re-signs every entry.
 
 ## 3.5 Device list
 
@@ -98,7 +117,7 @@ Each `<entry-id>.arg` is an age file encrypted to every device in the newest ver
     {
       "id": "<device-id>",
       "name": "MacBook",
-      "age": "age1...",
+      "enc": "argus1...",
       "sign": "<b64u Ed25519 public key>",
       "gitKey": "<SSH key fingerprint, or GitHub key id; optional>",
       "added": "2026-11-19T09:00:00Z",
@@ -108,13 +127,15 @@ Each `<entry-id>.arg` is an age file encrypted to every device in the newest ver
 }
 ```
 
+`enc` is the device's X25519 public key (32 raw bytes) encoded with bech32m (BIP-350), human-readable part `argus` (for example `argus1...`). bech32m is used rather than the original bech32 so a damaged checksum cannot be swapped undetected.
+
 `devices.json` is stored in canonical form, so its file bytes are its canonical bytes. The hash chain and the signature both use these bytes.
 
 `devices.sig` is `{"signer":"<device-id>","sig":"<b64u>"}`. The signature covers the prefix `argus-devices-v1` followed by the canonical bytes of `devices.json`.
 
 ### Fingerprint
 
-SHA-256 of the prefix `argus-device-v1` and a newline, then the 32-byte Ed25519 public key, then the 32-byte X25519 public key (the raw bytes inside the `age1...` string). Screens show the first 16 bytes as 8 groups of 4 hex characters. QR codes carry all 32 bytes.
+SHA-256 of the prefix `argus-device-v1` and a newline, then the 32-byte Ed25519 public key, then the 32-byte X25519 public key (the raw 32 bytes encoded by the `argus1...` string). Screens show the first 16 bytes as 8 groups of 4 hex characters. QR codes carry all 32 bytes.
 
 ### Anchor
 
@@ -136,14 +157,26 @@ Run on every pull, before anything new is used:
 
 | Item | Contents | Protected by |
 | --- | --- | --- |
-| `device.key` | Both private keys, as JSON inside an age passphrase file | Master password (scrypt) |
+| `device.key` | Both private keys, as JSON inside a secretbox envelope | Master password (Argon2id) |
 | `trust.json` | Pinned list: store id, version, hash | File permissions |
 | `join_state.json` | An unfinished join: device id, time | File permissions |
 | `config` | Remote URL, device name, lax time, clipboard time, theme, editor | File permissions |
 | Keychain | Git credentials; GitHub App credentials (App ID, installation id, private key) | Keychain, this device only |
 | Memory only | Unlocked keys, search index | Process lifetime; zeroed on lock |
 
-Plaintext of `device.key`: `{"v":1,"deviceId":"<id>","ageSecret":"AGE-SECRET-KEY-1...","signSeed":"<b64u 32 bytes>"}`.
+Plaintext of `device.key`: `{"v":1,"deviceId":"<id>","encSecret":"<b64u 32 bytes>","signSeed":"<b64u 32 bytes>"}`.
+
+The `device.key` file is a binary envelope. All integers are big-endian.
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 6 | magic, the bytes `41 52 47 55 53 4B 01` (`ARGUSK\x01`) |
+| 6 | 1 | version, `0x01` |
+| 7 | 16 | random Argon2id salt |
+| 23 | 4 | `opslimit`, u32 |
+| 27 | 4 | `memlimit`, u32, in bytes |
+| 31 | 24 | nonce for the `secretbox` |
+| 55 | n + 16 | ciphertext of the plaintext JSON plus the 16-byte tag, under the Argon2id-derived 32-byte key |
 
 The CLI and the app on one Mac share the same `device.key`, in the same data folder.
 
@@ -154,7 +187,7 @@ The CLI and the app on one Mac share the same `device.key`, in the same data fol
 
 ## 3.8 Test vectors
 
-Vectors are produced by the reference implementation in `vault-core` and checked against an independent implementation. See `08-testing.md`.
+Vectors are produced by the reference implementation in `vault-core` and checked against an independent implementation (the C libsodium, via `libsodium-sys-stable`). See `08-testing.md`.
 
 ## 3.9 Format migration
 

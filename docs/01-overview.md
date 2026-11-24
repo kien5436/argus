@@ -42,7 +42,7 @@
 
 
 1. Specification, threat model, test vectors.
-2. Core: store, entries, search, OTP, generator, with interop tests against the `age` Rust crate the core uses.
+2. Core: store, entries, search, OTP, generator, with interop tests against the C libsodium reference (the core uses the pure-Rust dryoc library).
 3. Core: device keys, signed device list, join, approve, verify, revoke.
 4. Core: git sync through the system `git` or libgit2, including an early spike building libgit2 for iOS.
 5. CLI and agent.
@@ -71,7 +71,7 @@ Plain data in, plain data out. No platform types cross the boundary.
 ## Limits and performance
 
 - Up to 20 trusted devices. Up to 10,000 entries per store. 1 MiB per entry.
-- Unlock with 1,000 entries builds the search index in under 500 ms on the reference device (an Apple-silicon Mac or an iPhone 12). Search over 1,000 entries takes under 50 ms.
+- Unlock with 1,000 entries builds the search index in under 500 ms on the reference device (an Apple-silicon Mac or an iPhone 11). Search over 1,000 entries takes under 50 ms.
 
 ## Distribution
 
